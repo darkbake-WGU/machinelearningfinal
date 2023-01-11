@@ -9,6 +9,7 @@ from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 from outlier_cleaner import outlierCleaner
 import pandas as pd
+import numpy as np
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -16,31 +17,33 @@ import pandas as pd
 features_list = ['poi','salary', 'ages', 'net_worth', 'from_this_person_to_poi', 'bonus', 'exercised_stock_options'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
-with open("final_project_dataset.pkl", "rb") as data_file:
-    data_dict = pickle.load(data_file)
+#with open("final_project_dataset.pkl", "rb") as data_file:
+#    data_dict = pickle.load(data_file)
     
-data_dict = pd.DataFrame.from_dict(data_dict)
-print(data_dict.head())    
+data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
+###creating dataFrame from dictionary - pandas 
+df = pd.DataFrame.from_dict(data_dict, orient='index', dtype=np.float) 
+print( df.describe().loc[:,['salary','bonus']])
     
 
 ### Task 2: Remove outliers
 
-cleaned_data = outlierCleaner(data_dict)
+cleaned_data = outlierCleaner(df)
 
 
 ### Task 3: Create new feature(s)
 
 ### Create new feature: bonus_to_salary ratio
-cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / data_dict['salary']
+cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / cleaned_data['salary']
 
 # Verify that the new feature was added correctly
-print(data_dict.head())
+print( cleaned_data.describe().loc[:,['bonus_to_salary']])
 
 
 
 
 ### Store to my_dataset for easy export below.
-my_dataset = data_dict
+my_dataset = cleaned_data
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
