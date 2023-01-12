@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from scipy import stats
 import numpy as np
+import pandas as pd
 
 def outlierCleaner(data_dict):
     """
@@ -20,7 +21,6 @@ def outlierCleaner(data_dict):
             percentiles = data_dict[col].quantile([0.01,0.99]).values
             data_dict[col][data_dict[col] <= percentiles[0]] = percentiles[0]
             data_dict[col][data_dict[col] >= percentiles[1]] = percentiles[1]
-        else:
-            data_dict[col]=data_dict[col]
-    return data_dict
+      
+    return pd.DataFrame(data_dict)
 
