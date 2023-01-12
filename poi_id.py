@@ -14,7 +14,7 @@ import numpy as np
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi','salary', 'ages', 'net_worth', 'from_this_person_to_poi', 'bonus', 'exercised_stock_options'] # You will need to use more features
+features_list = ['poi','salary', 'from_this_person_to_poi', 'bonus', 'exercised_stock_options'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 #with open("final_project_dataset.pkl", "rb") as data_file:
@@ -23,7 +23,7 @@ features_list = ['poi','salary', 'ages', 'net_worth', 'from_this_person_to_poi',
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
 ###creating dataFrame from dictionary - pandas 
 df = pd.DataFrame.from_dict(data_dict, orient='index', dtype=np.float) 
-print( df.describe().loc[:,['salary','bonus']])
+print( df.describe())
     
 
 ### Task 2: Remove outliers
@@ -37,13 +37,35 @@ cleaned_data = outlierCleaner(df)
 cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / cleaned_data['salary']
 
 # Verify that the new feature was added correctly
-print( cleaned_data.describe().loc[:,['bonus_to_salary']])
+print(cleaned_data.describe().loc[:,['bonus_to_salary']])
 
+print(cleaned_data.describe())
 
+print(f'shape of cleaned_data: {cleaned_data.shape}')
 
+### Task 3B: Apply scaling to the features
+
+#Import files necessary for scaling
+from sklearn.preprocessing import StandardScaler
+
+# Create a StandardScaler object
+scaler = StandardScaler()
+
+# Fit the scaler to the features using fit_transform
+# The fit_transform method applies the scaler to the features and returns the scaled features
+scaled_features = scaler.fit_transform(cleaned_data[features_list[1:]])
+scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data[features_list[1:]].columns)
+
+print(scaled_features_df.describe())
 
 ### Store to my_dataset for easy export below.
-my_dataset = cleaned_data
+my_dataset = scaled_features_df
+
+print(f'shape of my_dataset: {my_dataset.shape}')
+print(f'shape of feature_list: {len(features_list)}')
+
+#features_list2 = ['salary', 'from_this_person_to_poi', 'bonus', 'exercised_stock_options']
+
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -58,6 +80,27 @@ labels, features = targetFeatureSplit(data)
 # Provided to give you a starting point. Try a variety of classifiers.
 from sklearn.naive_bayes import GaussianNB
 clf = GaussianNB()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
