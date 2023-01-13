@@ -53,9 +53,6 @@ print(cleaned_data.describe())
 ### Only use the columns in features_list
 cleaned_data = cleaned_data.filter(items=features_list)
 
-### Print the shape to make sure everything is going okay
-print(f'shape of cleaned_data: {cleaned_data.shape}')
-
 ### Task 3B: Apply scaling to the features
 ### I added this task in as an extra step
 
@@ -73,7 +70,7 @@ scaler = StandardScaler()
 imp = SimpleImputer(missing_values=np.nan, strategy='mean')
 scaled_features = scaler.fit_transform(imp.fit_transform(cleaned_data))
 
-
+### Convert it to a pandas data frame
 scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data[features_list[0:]].columns)
 
 ###Drop NaN values
