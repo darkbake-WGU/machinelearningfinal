@@ -184,7 +184,7 @@ print("Best Score: ", grid_search.best_score_)
 
 
 ### Create a RandomForestClassifier object
-clf = RandomForestClassifier(n_estimators=100, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42)
+clf = RandomForestClassifier(n_estimators=50, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42)
 
 ### Fit the classifier to the data
 clf.fit(features_train, labels_train)
@@ -211,9 +211,95 @@ print("Recall:", recall)
 f1 = f1_score(labels_test, pred)
 print("F1-score:", f1)
 
+### Now we are trying SVM
+
+### Import required package
+from sklearn.svm import SVC
+
+# Define the parameter grid for the SVM
+param_grid = {'C': [0.1, 1, 10, 100],
+              'kernel': ['linear', 'rbf']}
+
+### Create a SVC classifier object
+clf = SVC()
+
+### Create a grid search object using the classifier and parameter grid
+grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
+
+### Fit the grid search object to the data
+grid_search.fit(features_train, labels_train)
+
+### Print the best parameters and best score
+print("Best Parameters: ", grid_search.best_params_)
+print("Best Score: ", grid_search.best_score_)
 
 
 
+
+
+
+
+
+### Create a SVM classifier object
+clf = SVC(kernel='rbf', C=100)
+
+### Fit the classifier to the training data
+clf.fit(features_train, labels_train)
+
+### Run a prediction test
+pred = clf.predict(features_test)
+
+### Compute accuracy
+accuracy = accuracy_score(labels_test, pred)
+print("Accuracy:", accuracy)
+
+### Compute precision
+precision = precision_score(labels_test, pred)
+print("Precision:", precision)
+
+### Compute recall
+recall = recall_score(labels_test, pred)
+print("Recall:", recall)
+
+### Compute F1-score
+f1 = f1_score(labels_test, pred)
+print("F1-score:", f1)
+
+### Now we will try AdaBoost
+
+### Import the necessary files
+from sklearn.ensemble import AdaBoostClassifier
+
+### Create an AdaBoostClassifier object
+clf = AdaBoostClassifier(random_state=42)
+
+### Define the parameter grid for the AdaBoostClassifier
+param_grid = {'n_estimators':[50, 100, 200],
+              'learning_rate':[0.1, 0.5, 1.0]}
+
+### Create a GridSearchCV object
+grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
+
+### Fit the GridSearchCV object to the data
+grid_search.fit(features_train, labels_train)
+
+### Print the best parameters and best score
+print("Best Parameters: ", grid_search.best_params_)
+print("Best Score: ", grid_search.best_score_)
+
+### Make predictions using the best estimator
+pred = grid_search.best_estimator_.predict(features_test)
+
+### Print the accuracy, precision, recall, and f1-score
+print("Accuracy:", accuracy_score(labels_test, pred))
+print("Precision:", precision_score(labels_test, pred))
+print("Recall:", recall_score(labels_test, pred))
+print("F1-score:", f1_score(labels_test, pred))
+
+### Write the classifier here:
+clf = AdaBoostClassifier(learning_rate=.5, n_estimators = 200, random_state=42)
+
+### It looks like we have a winner! We will use the AdaBoostClassifier
 
 
 
