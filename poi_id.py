@@ -152,6 +152,8 @@ grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 ### Fit the grid search object to the data
 grid_search.fit(features_train, labels_train)
 
+print("RandomForest:")
+
 ### Print the best parameters and best score
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
@@ -202,6 +204,8 @@ grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 ### Fit the grid search object to the data
 grid_search.fit(features_train, labels_train)
 
+print("SVC:")
+
 ### Print the best parameters and best score
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
@@ -214,6 +218,7 @@ clf.fit(features_train, labels_train)
 
 ### Run a prediction test
 pred = clf.predict(features_test)
+
 
 ### Compute accuracy
 accuracy = accuracy_score(labels_test, pred)
@@ -248,6 +253,8 @@ grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
 ### Fit the GridSearchCV object to the data
 grid_search.fit(features_train, labels_train)
+
+print("AdaBoost:")
 
 ### Print the best parameters and best score
 print("Best Parameters: ", grid_search.best_params_)
