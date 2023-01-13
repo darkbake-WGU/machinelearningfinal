@@ -67,12 +67,13 @@ from sklearn.impute import SimpleImputer
 scaler = StandardScaler()
 
 ### Use the imputer on any missing values
+### Fit the scaler to the features using fit_transform
+### The fit_transform method applies the scaler to the features and returns the scaled features
+
 imp = SimpleImputer(missing_values=np.nan, strategy='mean')
 scaled_features = scaler.fit_transform(imp.fit_transform(cleaned_data))
 
 
-### Fit the scaler to the features using fit_transform
-### The fit_transform method applies the scaler to the features and returns the scaled features
 scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data[features_list[0:]].columns)
 
 ###Drop NaN values
