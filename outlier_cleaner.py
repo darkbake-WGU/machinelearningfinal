@@ -5,12 +5,7 @@ import pandas as pd
 
 def outlierCleaner(data_dict):
     """
-        Clean away the 10% of points that have the largest
-        residual errors (difference between the prediction
-        and the actual net worth).
-
-        Return a list of tuples named cleaned_data where 
-        each tuple is of the form (age, net_worth, error).
+        Clean away the top and bottom 1% of the data
     """
 
     ### your code goes here
