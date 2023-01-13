@@ -14,18 +14,22 @@ import numpy as np
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
+
+### We will use every single numeric feature available
 features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 #with open("final_project_dataset.pkl", "rb") as data_file:
-#    data_dict = pickle.load(data_file)
 
-###We are also going to convert the data set into a pandas dataframe for use
-###in the outlierCleaner() function that I rewrote.
+### We are also going to convert the data set into a pandas dataframe for use
+### in the outlierCleaner() function that I rewrote.
     
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
+
 ###creating dataFrame from dictionary - pandas 
 df = pd.DataFrame.from_dict(data_dict, orient='index', dtype=float) 
+
+### Describe the data to check that everything is going okay
 print( df.describe())
     
 
@@ -43,12 +47,13 @@ cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / cleaned_data['salary']
 ### Verify that the new feature was added correctly
 print(cleaned_data.describe().loc[:,['bonus_to_salary']])
 
-###Check to make sure that the dataframe still looks healthy and its shape
+###Check to make sure that the dataframe still looks healthy
 print(cleaned_data.describe())
 
 ### Only use the columns in features_list
 cleaned_data = cleaned_data.filter(items=features_list)
 
+### Print the shape to make sure everything is going okay
 print(f'shape of cleaned_data: {cleaned_data.shape}')
 
 ### Task 3B: Apply scaling to the features
@@ -58,31 +63,26 @@ print(f'shape of cleaned_data: {cleaned_data.shape}')
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 
-
-
-
-
 ### Create a StandardScaler object
 scaler = StandardScaler()
 
+### Use the imputer on any missing values
 imp = SimpleImputer(missing_values=np.nan, strategy='mean')
 scaled_features = scaler.fit_transform(imp.fit_transform(cleaned_data))
 
 
 ### Fit the scaler to the features using fit_transform
 ### The fit_transform method applies the scaler to the features and returns the scaled features
-#scaled_features = scaler.fit_transform(cleaned_data[features_list[1:]])
 scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data[features_list[0:]].columns)
-
-### This will add the 'poi' column back in, as it was removed during scaling
-### scaled_features_df['poi'] = df['poi']
 
 ###Drop NaN values
 scaled_features_df = scaled_features_df.dropna()
+
 ### This will check on the health of the data frame once again
 print("Scaled_features: ", scaled_features_df.describe())
 
-### Now we must convert the data frame to a dictionary
+### Now we must convert the data frame to a dictionary so it can be used
+### in featureFormat()
 data_dict = scaled_features_df.to_dict(orient='index', into=dict)
 
 ### Store to my_dataset for easy export below.
@@ -99,32 +99,10 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### We will be skipping directly to supervised classifiers and trying out
+### RandomForest, SVC and AdaBoost. We will be using a grid search method
+### in order to determine optimal parameters for each classifier.
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -134,6 +112,8 @@ clf = GaussianNB()
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
+
+### Here we are splitting the data into testing and training segments
 from sklearn.model_selection import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
@@ -144,12 +124,6 @@ from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 labels_train = le.fit_transform(labels_train)
 labels_test = le.fit_transform(labels_test)
-    
-### We need to check and see if any of the data has null or missing values
-print(np.isnan(features_train).any())
-print(np.isinf(features_train).any())
-print(np.isnan(labels_train).any())
-print(np.isinf(labels_train).any())
 
 ### Import the RandomForestClassifier from sklearn.ensemble
 from sklearn.ensemble import RandomForestClassifier
@@ -181,9 +155,7 @@ grid_search.fit(features_train, labels_train)
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
     
-
-
-### Create a RandomForestClassifier object
+### Create a RandomForestClassifier object using the best parameters
 clf = RandomForestClassifier(n_estimators=50, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42)
 
 ### Fit the classifier to the data
@@ -211,12 +183,12 @@ print("Recall:", recall)
 f1 = f1_score(labels_test, pred)
 print("F1-score:", f1)
 
-### Now we are trying SVM
+### Now we are trying SVC
 
 ### Import required package
 from sklearn.svm import SVC
 
-# Define the parameter grid for the SVM
+# Define the parameter grid for the SVC
 param_grid = {'C': [0.1, 1, 10, 100],
               'kernel': ['linear', 'rbf']}
 
@@ -233,14 +205,7 @@ grid_search.fit(features_train, labels_train)
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
 
-
-
-
-
-
-
-
-### Create a SVM classifier object
+### Create a SVM classifier object using the best parameters found
 clf = SVC(kernel='rbf', C=100)
 
 ### Fit the classifier to the training data
@@ -296,10 +261,11 @@ print("Precision:", precision_score(labels_test, pred))
 print("Recall:", recall_score(labels_test, pred))
 print("F1-score:", f1_score(labels_test, pred))
 
-### Write the classifier here:
+### It looks like we have a winner! We will use the AdaBoostClassifier
+### Write the classifier here with its optimal parameters:
 clf = AdaBoostClassifier(learning_rate=.5, n_estimators = 200, random_state=42)
 
-### It looks like we have a winner! We will use the AdaBoostClassifier
+
 
 
 
