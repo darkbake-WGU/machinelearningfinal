@@ -41,8 +41,8 @@ cleaned_data = outlierCleaner(df)
 
 ### Task 3: Create new feature(s)
 
-### Create new feature: bonus_to_salary ratio
-cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / cleaned_data['salary']
+### Create new feature: bonus_to_salary ratio. Added a small value to the denominator to avoid dividing by zero.
+cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / (cleaned_data['salary'] + .01)
 
 ### Verify that the new feature was added correctly
 print(cleaned_data.describe().loc[:,['bonus_to_salary']])
@@ -67,7 +67,8 @@ scaler = StandardScaler()
 ### Fit the scaler to the features using fit_transform
 ### The fit_transform method applies the scaler to the features and returns the scaled features
 
-imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+### We tried mean, median, and constant. Constant was best!
+imp = SimpleImputer(missing_values=np.nan, strategy='constant')
 scaled_features = scaler.fit_transform(imp.fit_transform(cleaned_data))
 
 ### Convert it to a pandas data frame
@@ -112,7 +113,7 @@ scores = selector.scores_
 ### Create a dictionary of features and their scores
 features_scores = dict(zip(features_list[1:], scores))
 
-# Print the scores of each feature
+### Print the scores of each feature
 print("Feature Importance Scores:")
 for feature, score in features_scores.items():
     print("{}: {}".format(feature, score))
