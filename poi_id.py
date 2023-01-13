@@ -118,6 +118,7 @@ features_train, features_test, labels_train, labels_test = \
     
 
 ### For some reason, the labels have to be converted to a categorical variable
+### (We were getting an error otherwise)
 from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 labels_train = le.fit_transform(labels_train)
@@ -169,19 +170,19 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 ### Compute accuracy
 accuracy = accuracy_score(labels_test, pred)
-print("Accuracy:", accuracy)
+print("Accuracy: ", accuracy)
 
 ### Compute precision
 precision = precision_score(labels_test, pred)
-print("Precision:", precision)
+print("Precision: ", precision)
 
 ### Compute recall
 recall = recall_score(labels_test, pred)
-print("Recall:", recall)
+print("Recall: ", recall)
 
 ### Compute F1-score
 f1 = f1_score(labels_test, pred)
-print("F1-score:", f1)
+print("F1-score: ", f1)
 
 ### Now we are trying SVC
 
@@ -219,19 +220,19 @@ pred = clf.predict(features_test)
 
 ### Compute accuracy
 accuracy = accuracy_score(labels_test, pred)
-print("Accuracy:", accuracy)
+print("Accuracy: ", accuracy)
 
 ### Compute precision
 precision = precision_score(labels_test, pred)
-print("Precision:", precision)
+print("Precision: ", precision)
 
 ### Compute recall
 recall = recall_score(labels_test, pred)
-print("Recall:", recall)
+print("Recall: ", recall)
 
 ### Compute F1-score
 f1 = f1_score(labels_test, pred)
-print("F1-score:", f1)
+print("F1-score: ", f1)
 
 ### Now we will try AdaBoost
 
@@ -261,10 +262,10 @@ print("Best Score: ", grid_search.best_score_)
 pred = grid_search.best_estimator_.predict(features_test)
 
 ### Print the accuracy, precision, recall, and f1-score
-print("Accuracy:", accuracy_score(labels_test, pred))
-print("Precision:", precision_score(labels_test, pred))
-print("Recall:", recall_score(labels_test, pred))
-print("F1-score:", f1_score(labels_test, pred))
+print("Accuracy: ", accuracy_score(labels_test, pred))
+print("Precision: ", precision_score(labels_test, pred))
+print("Recall: ", recall_score(labels_test, pred))
+print("F1-score: ", f1_score(labels_test, pred))
 
 ### It looks like we have a winner! We will use the AdaBoostClassifier
 ### Write the classifier here with its optimal parameters:
