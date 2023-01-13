@@ -16,7 +16,7 @@ import numpy as np
 ### The first feature must be "poi".
 
 ### We will use every single numeric feature available
-features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees'] # You will need to use more features
+features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 #with open("final_project_dataset.pkl", "rb") as data_file:
@@ -86,6 +86,41 @@ data_dict = scaled_features_df.to_dict(orient='index', into=dict)
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 
+
+
+### FEATURE TESTING
+### In this code, we are going to test all of the features, including the new
+### one using SelectKBest.
+
+
+### Import necessary files
+from sklearn.feature_selection import SelectKBest, f_classif
+
+### Extract features and labels from dataset for local testing
+data = featureFormat(my_dataset, features_list, sort_keys = True)
+labels, features = targetFeatureSplit(data)
+
+### Create an instance of the SelectKBest object
+selector = SelectKBest(f_classif, k=19)
+
+### Fit the SelectKBest object to the features and labels
+selector.fit(features, labels)
+
+### Get the scores for each feature
+scores = selector.scores_
+
+### Create a dictionary of features and their scores
+features_scores = dict(zip(features_list[1:], scores))
+
+# Print the scores of each feature
+print("Feature Importance Scores:")
+for feature, score in features_scores.items():
+    print("{}: {}".format(feature, score))
+    
+
+### We are going to delete the bonus_to_salary feature as it was not important  
+features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees']
+    
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
