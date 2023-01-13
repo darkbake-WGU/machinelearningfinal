@@ -14,19 +14,23 @@ import numpy as np
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi','salary', 'from_this_person_to_poi', 'bonus', 'exercised_stock_options'] # You will need to use more features
+features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 #with open("final_project_dataset.pkl", "rb") as data_file:
 #    data_dict = pickle.load(data_file)
+
+###We are also going to convert the data set into a pandas dataframe for use
+###in the outlierCleaner() function that I rewrote.
     
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
 ###creating dataFrame from dictionary - pandas 
-df = pd.DataFrame.from_dict(data_dict, orient='index', dtype=np.float) 
+df = pd.DataFrame.from_dict(data_dict, orient='index', dtype=float) 
 print( df.describe())
     
 
 ### Task 2: Remove outliers
+### This outlierCleaner() function has been rewritten
 
 cleaned_data = outlierCleaner(df)
 
@@ -36,36 +40,53 @@ cleaned_data = outlierCleaner(df)
 ### Create new feature: bonus_to_salary ratio
 cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / cleaned_data['salary']
 
-# Verify that the new feature was added correctly
+### Verify that the new feature was added correctly
 print(cleaned_data.describe().loc[:,['bonus_to_salary']])
 
+###Check to make sure that the dataframe still looks healthy and its shape
 print(cleaned_data.describe())
+
+### Only use the columns in features_list
+cleaned_data = cleaned_data.filter(items=features_list)
 
 print(f'shape of cleaned_data: {cleaned_data.shape}')
 
 ### Task 3B: Apply scaling to the features
+### I added this task in as an extra step
 
-#Import files necessary for scaling
+###Import files necessary for scaling
 from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 
-# Create a StandardScaler object
+
+
+
+
+### Create a StandardScaler object
 scaler = StandardScaler()
 
-# Fit the scaler to the features using fit_transform
-# The fit_transform method applies the scaler to the features and returns the scaled features
-scaled_features = scaler.fit_transform(cleaned_data[features_list[1:]])
-scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data[features_list[1:]].columns)
+imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+scaled_features = scaler.fit_transform(imp.fit_transform(cleaned_data))
 
-print(scaled_features_df.describe())
+
+### Fit the scaler to the features using fit_transform
+### The fit_transform method applies the scaler to the features and returns the scaled features
+#scaled_features = scaler.fit_transform(cleaned_data[features_list[1:]])
+scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data[features_list[0:]].columns)
+
+### This will add the 'poi' column back in, as it was removed during scaling
+### scaled_features_df['poi'] = df['poi']
+
+###Drop NaN values
+scaled_features_df = scaled_features_df.dropna()
+### This will check on the health of the data frame once again
+print("Scaled_features: ", scaled_features_df.describe())
+
+### Now we must convert the data frame to a dictionary
+data_dict = scaled_features_df.to_dict(orient='index', into=dict)
 
 ### Store to my_dataset for easy export below.
-my_dataset = scaled_features_df
-
-print(f'shape of my_dataset: {my_dataset.shape}')
-print(f'shape of feature_list: {len(features_list)}')
-
-#features_list2 = ['salary', 'from_this_person_to_poi', 'bonus', 'exercised_stock_options']
-
+my_dataset = data_dict
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -102,6 +123,9 @@ clf = GaussianNB()
 
 
 
+
+
+
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
 ### folder for details on the evaluation method, especially the test_classifier
@@ -113,6 +137,111 @@ clf = GaussianNB()
 from sklearn.model_selection import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
+    
+
+### For some reason, the labels have to be converted to a categorical variable
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+labels_train = le.fit_transform(labels_train)
+labels_test = le.fit_transform(labels_test)
+    
+### We need to check and see if any of the data has null or missing values
+print(np.isnan(features_train).any())
+print(np.isinf(features_train).any())
+print(np.isnan(labels_train).any())
+print(np.isinf(labels_train).any())
+
+### Import the RandomForestClassifier from sklearn.ensemble
+from sklearn.ensemble import RandomForestClassifier
+
+### We are going to be using a grid search method in order to determine
+### the best parameters for the RandomForest classifier.
+
+### Import GridSearchCV
+from sklearn.model_selection import GridSearchCV
+
+### Define the parameter grid for the grid search
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 5, 10, 20],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+### Create a random forest classifier object
+clf = RandomForestClassifier(random_state=42)
+
+### Create a grid search object using the classifier and parameter grid
+grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
+
+### Fit the grid search object to the data
+grid_search.fit(features_train, labels_train)
+
+### Print the best parameters and best score
+print("Best Parameters: ", grid_search.best_params_)
+print("Best Score: ", grid_search.best_score_)
+    
+
+
+### Create a RandomForestClassifier object
+clf = RandomForestClassifier(n_estimators=100, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42)
+
+### Fit the classifier to the data
+clf.fit(features_train, labels_train)
+
+### Run a prediction test
+pred = clf.predict(features_test)
+
+### Import the required functions from sklearn.metrics
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+### Compute accuracy
+accuracy = accuracy_score(labels_test, pred)
+print("Accuracy:", accuracy)
+
+### Compute precision
+precision = precision_score(labels_test, pred)
+print("Precision:", precision)
+
+### Compute recall
+recall = recall_score(labels_test, pred)
+print("Recall:", recall)
+
+### Compute F1-score
+f1 = f1_score(labels_test, pred)
+print("F1-score:", f1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
