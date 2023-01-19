@@ -54,59 +54,58 @@ print(cleaned_data.describe())
 cleaned_data = cleaned_data.filter(items=features_list)
 
 #We do NOT want to use the scaler on the labels
-cleaned_data2 = cleaned_data.drop(columns=["poi"])
+#cleaned_data2 = cleaned_data.drop(columns=["poi"])
 
 ### Task 3B: Apply scaling to the features
 ### I added this task in as an extra step
 
 ###Import files necessary for scaling
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
+#from sklearn.preprocessing import StandardScaler
+#from sklearn.impute import SimpleImputer
 
 ### Create a StandardScaler object
-scaler = StandardScaler()
+#scaler = StandardScaler()
 
 ### Use the imputer on any missing values
 ### Fit the scaler to the features using fit_transform
 ### The fit_transform method applies the scaler to the features and returns the scaled features
 
 ### We tried mean, median, and constant. Constant was best!
-imp = SimpleImputer(missing_values=np.nan, strategy='constant')
-scaled_features = scaler.fit_transform(imp.fit_transform(cleaned_data2))
+#imp = SimpleImputer(missing_values=np.nan, strategy='constant')
+#scaled_features = scaler.fit_transform(imp.fit_transform(cleaned_data2))
 
 ### Convert it to a pandas data frame
-scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data2[features_list[1:]].columns)
+#scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data2[features_list[1:]].columns)
 
 ###Drop NaN values
-scaled_features_df = scaled_features_df.dropna()
+#scaled_features_df = scaled_features_df.dropna()
 
 ### This will check on the health of the data frame once again
-print("Scaled_features: ", scaled_features_df.describe())
+#print("Scaled_features: ", scaled_features_df.describe())
 
 ###Check on the poi column
-print(cleaned_data['poi'])
-cleaned_data['poi'] = cleaned_data['poi'].astype(scaled_features_df['poi'].dtype)
+#print(cleaned_data['poi'])
 
 
 ### Re-insert the labels
-scaled_features_df.insert(loc=0, column='poi', value=cleaned_data["poi"])
+#scaled_features_df.insert(loc=0, column='poi', value=cleaned_data["poi"])
 
-print(scaled_features_df['poi'])
+#print(scaled_features_df['poi'])
 
 ###Check the health of scaled_features_df
-print(scaled_features_df.isnull().sum())
+#print(scaled_features_df.isnull().sum())
 #print(scaled_features_df.isinf().sum())
 
 
 ### Now we must convert the data frame to a dictionary so it can be used
 ### in featureFormat()
-data_dict = scaled_features_df.to_dict(orient='index', into=dict)
+#data_dict = scaled_features_df.to_dict(orient='index', into=dict)
 
 
 ### Store to my_dataset for easy export below.
-my_dataset = data_dict
+my_dataset = cleaned_data.dropna()
 
-
+print(my_dataset)
 
 
 ### FEATURE TESTING
