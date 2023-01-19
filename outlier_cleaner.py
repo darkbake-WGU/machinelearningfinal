@@ -2,20 +2,43 @@
 from scipy import stats
 import numpy as np
 import pandas as pd
+from typing import Dict
 
-def outlierCleaner(data_dict):
+#This function takes the dictionary as a data variable.
+#The threshold is the z-score you would like to cap.
+def outlierCleaner(data: pd.DataFrame, threshold: float = 3) :
     """
-        Clean away the top and bottom 1% of the data
+        A function that takes a dictionary and returns a similar dictionary with outliers capped using the Z-score method and any outliers capped are printed out:
     """
+    #This function makes a copy of the dataframe as cleaned_data
+    cleaned_data = data.copy()
+    
+    #It skips non-numeric columns
+    for feature in data.columns:
+        if data[feature].dtype != np.number:
+            continue
+        
+        #It finds the mean and std of that column and computes the z-scores of the values in it
+        mean = data[feature].mean()
+        std = data[feature].std()
+        z_scores = (data[feature] - mean) / std
+        
+        #This would be the score of a value with a standard deviation of 3, which is our cap
+        cap = 3*std + mean
+        
+        #The function uses the z_scores object to determine when to cap 
+        cleaned_data[feature] = np.where(np.abs(z_scores) > threshold, cap, data[feature])
+        outliers = data[np.abs(z_scores) > threshold]
+        if not outliers.empty:
+                print(f"Outliers capped for feature {feature} for person {outliers['name']}")
+    return cleaned_data
 
-    ### your code goes here
+def replace_nan_with_mean(dataframe):
 
-    for col in data_dict.columns:
-        print("working with ",col)
-        if (((data_dict[col].dtype)=='float64') | ((data_dict[col].dtype)=='int64')):
-            percentiles = data_dict[col].quantile([0.01,0.99]).values
-            data_dict[col][data_dict[col] <= percentiles[0]] = percentiles[0]
-            data_dict[col][data_dict[col] >= percentiles[1]] = percentiles[1]
-      
-    return pd.DataFrame(data_dict)
-
+    for column in dataframe.columns:
+        if dataframe[column].dtype != np.number:
+            continue
+        
+        mean = dataframe[column].mean()
+        dataframe[column].fillna(mean, inplace=True)
+    return dataframe
