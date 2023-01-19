@@ -41,7 +41,7 @@ cleaned_data = outlierCleaner(df)
 
 ### Task 3: Create new feature(s)
 
-### Create new feature: bonus_to_salary ratio. Added a small value to the denominator to avoid dividing by zero.
+### Create new feature: bonus_to_salary ratio. Added a small value to the denominator to avoid dividing by zero.c
 cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / (cleaned_data['salary'] + .01)
 
 ### Verify that the new feature was added correctly
@@ -103,10 +103,13 @@ cleaned_data = cleaned_data.filter(items=features_list)
 
 
 ### Store to my_dataset for easy export below.
-my_dataset = cleaned_data.dropna()
+my_dataset = cleaned_data
 
 print(my_dataset)
 
+###Since we converted the data to pandas dataframe a while back, now we need
+###to make sure it is in the correct format.
+my_dataset = my_dataset.groupby('name').agg({col: 'first' for col in my_dataset.columns if col != 'name'}).to_dict('index')
 
 ### FEATURE TESTING
 ### In this code, we are going to test all of the features, including the new
