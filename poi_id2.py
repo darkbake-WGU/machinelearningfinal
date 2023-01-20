@@ -58,9 +58,6 @@ print(selected_features.head())
 
 ### Task 2: Remove outliers
 ### This outlierCleaner() function has been rewritten
-
-print(selected_features.head())
-
 #Run outlier cleaner
 print("Cleaning Outliers")
 cleaned_data = outlierCleaner(selected_features)
@@ -82,18 +79,23 @@ print(cleaned_data.describe().loc[:,['bonus_to_salary']])
 ###Check to make sure that the dataframe still looks healthy
 print(cleaned_data.describe())
 
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary']
 ### Only use the columns in features_list
 cleaned_data = cleaned_data.filter(items=features_list)
 
 ### Store to my_dataset for easy export below.
 my_dataset = cleaned_data
 
+print("Printing cleaned data")
 print(my_dataset)
 
 
 my_dataset.transpose().to_dict()
 
+print("Printing dictionary")
 print(my_dataset)
+print(my_dataset.keys())
+print(features_list)
 
 ### FEATURE TESTING
 ### In this code, we are going to test all of the features, including the new
