@@ -90,6 +90,11 @@ my_dataset = cleaned_data
 
 print(my_dataset)
 
+
+my_dataset.transpose().to_dict()
+
+print(my_dataset)
+
 ### FEATURE TESTING
 ### In this code, we are going to test all of the features, including the new
 ### one using SelectKBest.
@@ -100,6 +105,8 @@ from sklearn.feature_selection import SelectKBest, f_classif
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
+print("Printing data")
+print(data)
 labels, features = targetFeatureSplit(data)
 
 ### Create an instance of the SelectKBest object
@@ -122,7 +129,9 @@ for feature, score in features_scores.items():
 
 ### We are going to delete the bonus_to_salary feature as it was not important  
 features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees']
-    
+
+
+
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
@@ -147,6 +156,7 @@ labels, features = targetFeatureSplit(data)
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
+
 
 ### Here we are splitting the data into testing and training segments
 from sklearn.model_selection import train_test_split
