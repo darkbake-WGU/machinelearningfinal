@@ -13,10 +13,9 @@ def outlierCleaner(data: pd.DataFrame, threshold: float = 3) :
     #This function makes a copy of the dataframe as cleaned_data
     cleaned_data = data.copy()
     
-    #It skips non-numeric columns
+    #It skips non-numeric column poi
     for feature in data.columns:
         if feature in ['poi']:
-        #if data[feature].dtype != np.number:
             continue
         
         #It finds the mean and std of that column and computes the z-scores of the values in it
@@ -30,6 +29,7 @@ def outlierCleaner(data: pd.DataFrame, threshold: float = 3) :
         #The function uses the z_scores object to determine when to cap 
         cleaned_data[feature] = np.where(np.abs(z_scores) > threshold, cap, data[feature])
         outliers = data[np.abs(z_scores) > threshold]
+        #If there are outliers, the function prints them to the console!
         if not outliers.empty:
                 print(f"Outliers capped for feature {feature} for person {outliers.index}")
     return cleaned_data
@@ -42,7 +42,7 @@ def replace_nan_with_mean(dataframe):
         #Skip poi column
         if column in ['poi']:
             continue
-        print('NAN value replaced')
+        print('NAN values replaced')
         #Calculate the mean of the column for replacement
         mean = dataframe[column].mean()
         
