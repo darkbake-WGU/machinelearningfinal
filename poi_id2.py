@@ -129,8 +129,8 @@ for feature, score in features_scores.items():
     print("{}: {}".format(feature, score))
     
 
-### We are going to delete the bonus_to_salary feature as it was not important  
-features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees']
+### We are going to keep the top 8 features  
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees']
 
 
 
@@ -159,6 +159,8 @@ labels, features = targetFeatureSplit(data)
 
 # Example starting point. Try investigating other evaluation techniques!
 
+features_list = ['poi', 'to_messages', 'total_payments', 'bonus', 'total_stock_value', 'from_poi_to_this_person', 'exercised_stock_options', 'shared_receipt_with_poi','director_fees']
+
 
 ### Here we are splitting the data into testing and training segments
 from sklearn.model_selection import train_test_split
@@ -172,6 +174,18 @@ from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 labels_train = le.fit_transform(labels_train)
 labels_test = le.fit_transform(labels_test)
+
+###Now we are going to do feature scaling
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
+# Fit the scaler to the training data
+scaler.fit(features_train)
+
+# Transform the training and test data using the fitted scaler
+features_train_scaled = scaler.transform(features_train)
+features_test_scaled = scaler.transform(features_test)
 
 ### Import the RandomForestClassifier from sklearn.ensemble
 from sklearn.ensemble import RandomForestClassifier
@@ -197,7 +211,7 @@ clf = RandomForestClassifier(random_state=42)
 grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
 ### Fit the grid search object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features_train_scaled, labels_train)
 
 print("RandomForest:")
 
@@ -209,10 +223,10 @@ print("Best Score: ", grid_search.best_score_)
 clf = RandomForestClassifier(n_estimators=50, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42)
 
 ### Fit the classifier to the data
-clf.fit(features_train, labels_train)
+clf.fit(features_train_scaled, labels_train)
 
 ### Run a prediction test
-pred = clf.predict(features_test)
+pred = clf.predict(features_test_scaled)
 
 ### Import the required functions from sklearn.metrics
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -242,6 +256,7 @@ from sklearn.svm import SVC
 param_grid = {'C': [0.1, 1, 10, 100],
               'kernel': ['linear', 'rbf']}
 
+#
 print("Create classifier")
 ### Create a SVC classifier object
 clf = SVC()
@@ -252,22 +267,23 @@ grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
 print("Fit the grid search")
 ### Fit the grid search object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features_train_scaled, labels_train)
 
 print("SVC:")
 
 ### Print the best parameters and best score
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
+#
 
 ### Create a SVM classifier object using the best parameters found
 clf = SVC(kernel='rbf', C=100)
 
 ### Fit the classifier to the training data
-clf.fit(features_train, labels_train)
+clf.fit(features_train_scaled, labels_train)
 
 ### Run a prediction test
-pred = clf.predict(features_test)
+pred = clf.predict(features_test_scaled)
 
 
 ### Compute accuracy
@@ -302,7 +318,7 @@ param_grid = {'n_estimators':[50, 100, 200],
 grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
 ### Fit the GridSearchCV object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features_train_scaled, labels_train)
 
 print("AdaBoost:")
 
@@ -311,7 +327,7 @@ print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
 
 ### Make predictions using the best estimator
-pred = grid_search.best_estimator_.predict(features_test)
+pred = grid_search.best_estimator_.predict(features_test_scaled)
 
 ### Print the accuracy, precision, recall, and f1-score
 print("Accuracy: ", accuracy_score(labels_test, pred))
