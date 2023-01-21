@@ -8,15 +8,17 @@ sys.path.append(os.path.abspath(("../tools/")))
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 from outlier_cleaner import outlierCleaner
+from outlier_cleaner import replace_nan_with_mean
 import pandas as pd
 import numpy as np
+import numbers
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 
 ### We will use every single numeric feature available
-features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary'] # You will need to use more features
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees'] # You will need to use more features
 
 ### Load the dictionary containing the dataset
 #with open("final_project_dataset.pkl", "rb") as data_file:
@@ -25,91 +27,77 @@ features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_paym
 ### in the outlierCleaner() function that I rewrote.
     
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
+data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
 
-###creating dataFrame from dictionary - pandas 
-df = pd.DataFrame.from_dict(data_dict, orient='index', dtype=float) 
+#Select only the features in features_list
+selected_features = data_frame.loc[:, features_list]
+
+print(selected_features.head())
+print(selected_features['salary'].dtype)
+
+#Now we need to convert everything to a float but the poi column
+# Store column names in a list
+cols = selected_features.columns.tolist()
+# Remove 'poi' column from the list
+cols.remove('poi')
+# Convert the data type of all columns in the list to float
+selected_features[cols] = selected_features[cols].astype(float)
+
+# Add the 'poi' column back to the DataFrame
+selected_features = selected_features.assign(poi=data_frame['poi'])
+
+print(selected_features.head())
+
+print('Replacing NAN with mean values')
+#Additional functionality was added to the outlier_cleaner.py
+#This function replaces NAN values with the column mean
+selected_features = replace_nan_with_mean(selected_features)
 
 ### Describe the data to check that everything is going okay
-print( df.describe())
-    
+print(selected_features.head())
 
 ### Task 2: Remove outliers
 ### This outlierCleaner() function has been rewritten
+#Run outlier cleaner
+print("Cleaning Outliers")
+cleaned_data = outlierCleaner(selected_features)
 
-cleaned_data = outlierCleaner(df)
-
+print(cleaned_data.head())
 
 ### Task 3: Create new feature(s)
 
+#Force bonus and salary to be numeric
+cleaned_data['bonus'] = pd.to_numeric(cleaned_data['bonus'], errors='coerce')
+cleaned_data['salary'] = pd.to_numeric(cleaned_data['salary'], errors='coerce')
+
 ### Create new feature: bonus_to_salary ratio. Added a small value to the denominator to avoid dividing by zero.c
-cleaned_data['bonus_to_salary'] = cleaned_data['bonus'] / (cleaned_data['salary'] + .01)
+cleaned_data['bonus_to_salary'] = ((cleaned_data['bonus']) / (cleaned_data['salary'] + 0.01))
 
 ### Verify that the new feature was added correctly
 print(cleaned_data.describe().loc[:,['bonus_to_salary']])
 
+print("Showing the location of the new feature")
 ###Check to make sure that the dataframe still looks healthy
 print(cleaned_data.describe())
 
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary']
 ### Only use the columns in features_list
 cleaned_data = cleaned_data.filter(items=features_list)
-
-#We do NOT want to use the scaler on the labels
-#cleaned_data2 = cleaned_data.drop(columns=["poi"])
-
-### Task 3B: Apply scaling to the features
-### I added this task in as an extra step
-
-###Import files necessary for scaling
-#from sklearn.preprocessing import StandardScaler
-#from sklearn.impute import SimpleImputer
-
-### Create a StandardScaler object
-#scaler = StandardScaler()
-
-### Use the imputer on any missing values
-### Fit the scaler to the features using fit_transform
-### The fit_transform method applies the scaler to the features and returns the scaled features
-
-### We tried mean, median, and constant. Constant was best!
-#imp = SimpleImputer(missing_values=np.nan, strategy='constant')
-#scaled_features = scaler.fit_transform(imp.fit_transform(cleaned_data2))
-
-### Convert it to a pandas data frame
-#scaled_features_df = pd.DataFrame(scaled_features,columns=cleaned_data2[features_list[1:]].columns)
-
-###Drop NaN values
-#scaled_features_df = scaled_features_df.dropna()
-
-### This will check on the health of the data frame once again
-#print("Scaled_features: ", scaled_features_df.describe())
-
-###Check on the poi column
-#print(cleaned_data['poi'])
-
-
-### Re-insert the labels
-#scaled_features_df.insert(loc=0, column='poi', value=cleaned_data["poi"])
-
-#print(scaled_features_df['poi'])
-
-###Check the health of scaled_features_df
-#print(scaled_features_df.isnull().sum())
-#print(scaled_features_df.isinf().sum())
-
-
-### Now we must convert the data frame to a dictionary so it can be used
-### in featureFormat()
-#data_dict = scaled_features_df.to_dict(orient='index', into=dict)
-
 
 ### Store to my_dataset for easy export below.
 my_dataset = cleaned_data
 
+print("Printing cleaned data")
 print(my_dataset)
 
-###Since we converted the data to pandas dataframe a while back, now we need
-###to make sure it is in the correct format.
-my_dataset = my_dataset.groupby('name').agg({col: 'first' for col in my_dataset.columns if col != 'name'}).to_dict('index')
+
+data_dict = my_dataset.to_dict(orient='index')
+
+my_dataset = data_dict
+
+print("Printing dictionary keys to compare to features_list")
+print(my_dataset.keys())
+print(features_list)
 
 ### FEATURE TESTING
 ### In this code, we are going to test all of the features, including the new
@@ -141,9 +129,11 @@ for feature, score in features_scores.items():
     print("{}: {}".format(feature, score))
     
 
-### We are going to delete the bonus_to_salary feature as it was not important  
-features_list = ['poi','salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees']
-    
+### We are going to keep the top 8 features  
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees']
+
+
+
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
@@ -169,6 +159,9 @@ labels, features = targetFeatureSplit(data)
 
 # Example starting point. Try investigating other evaluation techniques!
 
+features_list = ['poi', 'to_messages', 'total_payments', 'bonus', 'total_stock_value', 'from_poi_to_this_person', 'exercised_stock_options', 'shared_receipt_with_poi','director_fees']
+
+
 ### Here we are splitting the data into testing and training segments
 from sklearn.model_selection import train_test_split
 features_train, features_test, labels_train, labels_test = \
@@ -181,6 +174,18 @@ from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 labels_train = le.fit_transform(labels_train)
 labels_test = le.fit_transform(labels_test)
+
+###Now we are going to do feature scaling
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
+# Fit the scaler to the training data
+scaler.fit(features_train)
+
+# Transform the training and test data using the fitted scaler
+features_train_scaled = scaler.transform(features_train)
+features_test_scaled = scaler.transform(features_test)
 
 ### Import the RandomForestClassifier from sklearn.ensemble
 from sklearn.ensemble import RandomForestClassifier
@@ -206,7 +211,7 @@ clf = RandomForestClassifier(random_state=42)
 grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
 ### Fit the grid search object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features_train_scaled, labels_train)
 
 print("RandomForest:")
 
@@ -218,10 +223,10 @@ print("Best Score: ", grid_search.best_score_)
 clf = RandomForestClassifier(n_estimators=50, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42)
 
 ### Fit the classifier to the data
-clf.fit(features_train, labels_train)
+clf.fit(features_train_scaled, labels_train)
 
 ### Run a prediction test
-pred = clf.predict(features_test)
+pred = clf.predict(features_test_scaled)
 
 ### Import the required functions from sklearn.metrics
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -251,29 +256,34 @@ from sklearn.svm import SVC
 param_grid = {'C': [0.1, 1, 10, 100],
               'kernel': ['linear', 'rbf']}
 
+#
+print("Create classifier")
 ### Create a SVC classifier object
 clf = SVC()
 
+print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
 grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
+print("Fit the grid search")
 ### Fit the grid search object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features_train_scaled, labels_train)
 
 print("SVC:")
 
 ### Print the best parameters and best score
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
+#
 
 ### Create a SVM classifier object using the best parameters found
 clf = SVC(kernel='rbf', C=100)
 
 ### Fit the classifier to the training data
-clf.fit(features_train, labels_train)
+clf.fit(features_train_scaled, labels_train)
 
 ### Run a prediction test
-pred = clf.predict(features_test)
+pred = clf.predict(features_test_scaled)
 
 
 ### Compute accuracy
@@ -308,7 +318,7 @@ param_grid = {'n_estimators':[50, 100, 200],
 grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
 ### Fit the GridSearchCV object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features_train_scaled, labels_train)
 
 print("AdaBoost:")
 
@@ -317,7 +327,7 @@ print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
 
 ### Make predictions using the best estimator
-pred = grid_search.best_estimator_.predict(features_test)
+pred = grid_search.best_estimator_.predict(features_test_scaled)
 
 ### Print the accuracy, precision, recall, and f1-score
 print("Accuracy: ", accuracy_score(labels_test, pred))
