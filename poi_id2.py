@@ -76,6 +76,7 @@ cleaned_data['bonus_to_salary'] = ((cleaned_data['bonus']) / (cleaned_data['sala
 ### Verify that the new feature was added correctly
 print(cleaned_data.describe().loc[:,['bonus_to_salary']])
 
+print("Showing the location of the new feature")
 ###Check to make sure that the dataframe still looks healthy
 print(cleaned_data.describe())
 
@@ -90,10 +91,11 @@ print("Printing cleaned data")
 print(my_dataset)
 
 
-my_dataset.transpose().to_dict()
+data_dict = my_dataset.to_dict(orient='index')
 
-print("Printing dictionary")
-print(my_dataset)
+my_dataset = data_dict
+
+print("Printing dictionary keys to compare to features_list")
 print(my_dataset.keys())
 print(features_list)
 
@@ -107,8 +109,6 @@ from sklearn.feature_selection import SelectKBest, f_classif
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
-print("Printing data")
-print(data)
 labels, features = targetFeatureSplit(data)
 
 ### Create an instance of the SelectKBest object
@@ -242,12 +242,15 @@ from sklearn.svm import SVC
 param_grid = {'C': [0.1, 1, 10, 100],
               'kernel': ['linear', 'rbf']}
 
+print("Create classifier")
 ### Create a SVC classifier object
 clf = SVC()
 
+print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
 grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
+print("Fit the grid search")
 ### Fit the grid search object to the data
 grid_search.fit(features_train, labels_train)
 
