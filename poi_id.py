@@ -9,6 +9,7 @@ from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 from outlier_cleaner import outlierCleaner
 from outlier_cleaner import replace_nan_with_mean
+from outlier_cleaner import feature_nulls_analyze
 import pandas as pd
 import numpy as np
 import numbers
@@ -29,6 +30,11 @@ features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_pay
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
 data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
 
+
+print(data_frame.head())
+print(data_frame.isnull().sum())
+
+feature_nulls_analyze(data_frame)
 #Select only the features in features_list
 selected_features = data_frame.loc[:, features_list]
 
