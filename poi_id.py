@@ -30,14 +30,18 @@ features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_pay
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
 data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
 
-
+print("Looking at the dataframe")
 print(data_frame.head())
-print(data_frame.isnull().sum())
+print("Printing if it has null values")
+print(data_frame.isnull())
+print("Printing how many null values")
+print(data_frame.isnull().count())
 
 feature_nulls_analyze(data_frame)
 #Select only the features in features_list
 selected_features = data_frame.loc[:, features_list]
 
+print("Looking at the dataframe")
 print(selected_features.head())
 print(selected_features['salary'].dtype)
 

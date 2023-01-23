@@ -42,7 +42,7 @@ def replace_nan_with_mean(dataframe):
         #Skip poi column
         if column in ['poi']:
             continue
-        print('NAN values replaced')
+        print(f'NAN values replaced for {column}')
         #Calculate the mean of the column for replacement
         mean = dataframe[column].mean()
         
@@ -51,3 +51,22 @@ def replace_nan_with_mean(dataframe):
     
     #Return a dataframe
     return dataframe
+
+def feature_nulls_analyze(data_frame):
+    import matplotlib.pyplot as plt
+    data_frame.replace('', np.nan, inplace=True)
+    print("New null value count")
+    print(data_frame.isnull().sum())
+    # Calculate the percentage of NaN values for each feature
+    nan_counts = data_frame.isnull().sum() / data_frame.shape[0] * 100
+
+    # Create a bar chart to visualize the results
+    nan_counts.plot(kind='bar', color='blue')
+
+    # Add labels and title
+    plt.xlabel('Features')
+    plt.ylabel('Percentage of NaN values')
+    plt.title('Percentage of NaN values by feature')
+
+    # Display the chart
+    plt.show()
