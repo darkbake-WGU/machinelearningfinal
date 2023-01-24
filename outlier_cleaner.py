@@ -56,7 +56,7 @@ def feature_nulls_analyze(data_frame):
     import matplotlib.pyplot as plt
     data_frame.replace('', np.nan, inplace=True)
     print("New null value count")
-    print(data_frame.isnull().sum())
+    print(data_frame.isnull().count())
     # Calculate the percentage of NaN values for each feature
     nan_counts = data_frame.isnull().sum() / data_frame.shape[0] * 100
 

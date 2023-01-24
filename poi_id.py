@@ -32,10 +32,21 @@ data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
 
 print("Looking at the dataframe")
 print(data_frame.head())
+
+print("Nan strings")
+print(data_frame.isin(['NaN']).any(axis=1))
+
+print("Replacing NaN Strings with nan values")
+data_frame.replace("NaN", np.nan, inplace=True)
+
 print("Printing if it has null values")
 print(data_frame.isnull())
 print("Printing how many null values")
 print(data_frame.isnull().count())
+
+
+
+
 
 feature_nulls_analyze(data_frame)
 #Select only the features in features_list
@@ -69,8 +80,9 @@ print(selected_features.head())
 ### Task 2: Remove outliers
 ### This outlierCleaner() function has been rewritten
 #Run outlier cleaner
-print("Cleaning Outliers")
-cleaned_data = outlierCleaner(selected_features)
+print("Cleaning Outliers has been cancelled")
+#cleaned_data = outlierCleaner(selected_features)
+cleaned_data = selected_features
 
 print(cleaned_data.head())
 
