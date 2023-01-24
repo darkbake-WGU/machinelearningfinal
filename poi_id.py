@@ -359,7 +359,7 @@ print("F1-score: ", f1_score(labels_test, pred))
 
 ### It looks like we have a winner! We will use the RandomForest classifier
 ### Write the classifier here with its optimal parameters:
-clf = RandomForestClassifier(n_estimators=50, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42)
+clf = AdaBoostClassifier(learning_rate = .5, n_estimators = 50,random_state=42)
 
 
 
