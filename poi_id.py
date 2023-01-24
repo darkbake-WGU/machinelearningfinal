@@ -181,7 +181,7 @@ labels, features = targetFeatureSplit(data)
 
 # Example starting point. Try investigating other evaluation techniques!
 
-features_list = ['poi', 'to_messages', 'total_payments', 'bonus', 'total_stock_value', 'from_poi_to_this_person', 'exercised_stock_options', 'shared_receipt_with_poi','director_fees']
+features_list = ['poi', 'restricted_stock', 'to_messages', 'total_payments', 'bonus', 'from_poi_to_this_person', 'shared_receipt_with_poi','director_fees', 'loan_advances']
 
 
 ### Here we are splitting the data into testing and training segments
