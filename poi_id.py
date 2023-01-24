@@ -13,6 +13,7 @@ from outlier_cleaner import feature_nulls_analyze
 import pandas as pd
 import numpy as np
 import numbers
+from tester import test_classifier
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -112,8 +113,34 @@ my_dataset = cleaned_data
 print("Printing cleaned data")
 print(my_dataset)
 
+print("Scaling data")
 
-data_dict = my_dataset.to_dict(orient='index')
+from sklearn.preprocessing import MinMaxScaler
+
+
+
+# Create a copy of the original dataset
+scaled_dataset = my_dataset.copy()
+
+print(my_dataset['poi'].value_counts()) # check poi before
+
+#Remove the poi column
+poi = scaled_dataset.pop('poi')
+
+#Scale the rest of the data
+scaler = MinMaxScaler()
+scaled_features = scaler.fit_transform(scaled_dataset)
+scaled_dataset = pd.DataFrame(scaled_features, columns=scaled_dataset.columns)
+
+# Add the 'poi' column back to the scaled dataset
+scaled_dataset.insert(0, 'poi', poi)
+print(scaled_dataset['poi'].value_counts()) # check poi after
+scaled_features = scaler.fit_transform(scaled_dataset)
+
+
+
+
+data_dict = scaled_dataset.to_dict(orient='index')
 
 my_dataset = data_dict
 
@@ -198,16 +225,16 @@ labels_train = le.fit_transform(labels_train)
 labels_test = le.fit_transform(labels_test)
 
 ###Now we are going to do feature scaling
-from sklearn.preprocessing import StandardScaler
+#from sklearn.preprocessing import StandardScaler
 
-scaler = StandardScaler()
+#scaler = StandardScaler()
 
 # Fit the scaler to the training data
-scaler.fit(features_train)
+#scaler.fit(features_train)
 
 # Transform the training and test data using the fitted scaler
-features_train_scaled = scaler.transform(features_train)
-features_test_scaled = scaler.transform(features_test)
+#features_train_scaled = scaler.transform(features_train)
+#features_test_scaled = scaler.transform(features_test)
 
 ### Import the RandomForestClassifier from sklearn.ensemble
 from sklearn.ensemble import RandomForestClassifier
@@ -359,14 +386,9 @@ print("F1-score: ", f1_score(labels_test, pred))
 
 ### It looks like we have a winner! We will use the RandomForest classifier
 ### Write the classifier here with its optimal parameters:
-clf = AdaBoostClassifier(learning_rate = .5, n_estimators = 50,random_state=42)
+clf = AdaBoostClassifier(learning_rate=.5, n_estimators=50)
 
-
-
-
-
-
-
+test_classifier(clf, my_dataset, features_list)
 
 
 
