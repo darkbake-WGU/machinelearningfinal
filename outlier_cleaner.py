@@ -55,8 +55,8 @@ def replace_nan_with_mean(dataframe):
 def feature_nulls_analyze(data_frame):
     import matplotlib.pyplot as plt
     data_frame.replace('', np.nan, inplace=True)
-    print("New null value count")
-    print(data_frame.isnull().count())
+    print("Calculating null values")
+    print(data_frame.isnull().sum())
     # Calculate the percentage of NaN values for each feature
     nan_counts = data_frame.isnull().sum() / data_frame.shape[0] * 100
 
