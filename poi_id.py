@@ -173,10 +173,6 @@ features_scores = dict(zip(features_list[1:], scores))
 print("Feature Importance Scores:")
 for feature, score in features_scores.items():
     print("{}: {}".format(feature, score))
-    
-
-### We are going to keep the top 8 features  
-features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees']
 
 
 
@@ -203,7 +199,8 @@ features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_pay
 
 # Example starting point. Try investigating other evaluation techniques!
 
-features_list = ['poi', 'restricted_stock', 'to_messages', 'total_payments', 'bonus', 'from_poi_to_this_person', 'shared_receipt_with_poi','director_fees', 'loan_advances']
+### We are going to keep the top 4 features  
+features_list = ['poi', 'from_poi_to_this_person', 'shared_receipt_with_poi','director_fees', 'loan_advances']
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -218,9 +215,9 @@ features_train, features_test, labels_train, labels_test = \
 ### For some reason, the labels have to be converted to a categorical variable
 ### (We were getting an error otherwise)
 from sklearn.preprocessing import LabelEncoder
-le = LabelEncoder()
-labels_train = le.fit_transform(labels_train)
-labels_test = le.fit_transform(labels_test)
+#le = LabelEncoder()
+#labels_train = le.fit_transform(labels_train)
+#labels_test = le.fit_transform(labels_test)
 
 ###Now we are going to do feature scaling
 #from sklearn.preprocessing import StandardScaler
@@ -248,18 +245,15 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 
 ### Define the parameter grid for the grid search
-param_grid = {
-    'classifier__n_estimators': [50, 100, 200],
-    'classifier__max_depth': [None, 5, 10, 20],
-    'classifier__min_samples_split': [2, 5, 10],
-    'classifier__min_samples_leaf': [1, 2, 4]
-}
+param_grid = {'classifier__n_estimators': [10, 50, 100],
+              'classifier__max_depth': [None, 5, 10]}
 
 #Create the pipeline
 pipe = Pipeline([
+    ('encoder', LabelEncoder()),
     ('scaler', StandardScaler()),
     ('classifier', RandomForestClassifier())
-])
+], memory=None)
 
 
 
