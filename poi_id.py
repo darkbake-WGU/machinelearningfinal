@@ -250,7 +250,6 @@ param_grid = {'classifier__n_estimators': [10, 50, 100],
 
 #Create the pipeline
 pipe = Pipeline([
-    ('encoder', LabelEncoder()),
     ('scaler', StandardScaler()),
     ('classifier', RandomForestClassifier())
 ])
