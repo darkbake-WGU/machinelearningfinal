@@ -166,7 +166,8 @@ print("RandomForest:")
 ### Print the best parameters and best score
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
-    
+
+#Make the prediction
 best_estimator = grid_search.best_estimator_
 best_estimator.fit(features_train, labels_train)
 pred = best_estimator.predict(features_test)
@@ -223,6 +224,7 @@ print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
 #
 
+#Make the prediction using the parameters found by the grid search
 best_estimator = grid_search.best_estimator_
 best_estimator.fit(features_train, labels_train)
 pred = best_estimator.predict(features_test)
