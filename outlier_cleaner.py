@@ -34,39 +34,39 @@ def outlierCleaner(data: pd.DataFrame, threshold: float = 3) :
                 print(f"Outliers capped for feature {feature} for person {outliers.index}")
     return cleaned_data
 
-def replace_nan_with_mean(dataframe):
-#This function replaces the nan values with the mean of the values in that column
-    print('Function activated')
-    #Iterate through the columns in the dataframe
-    for column in dataframe.columns:
-        #Skip poi column
-        if column in ['poi']:
-            continue
-        print(f'NAN values replaced for {column}')
-        #Calculate the mean of the column for replacement
-        mean = dataframe[column].mean()
-        
-        #Fill null values with the mean
-        dataframe[column].fillna(mean, inplace=True)
-    
-    #Return a dataframe
-    return dataframe
+def replace_nan_with_mean(data_dict, features_list):
+    #Cycle through the features
+    for feature in features_list:
+        #Get the mean of the feature
+        mean = np.mean([data_dict[key][feature] for key in data_dict if data_dict[key][feature] != 'NaN'])
+        #Cycle through the keys in the dictionary and replace 'NaN' with mean
+        for key in data_dict:
+            if data_dict[key][feature] == 'NaN':
+                data_dict[key][feature] = mean
+    return data_dict
 
-def feature_nulls_analyze(data_frame):
+def feature_nulls_analyze(data_dict, features_list):
     import matplotlib.pyplot as plt
-    data_frame.replace('', np.nan, inplace=True)
-    print("Calculating null values")
-    print(data_frame.isnull().sum())
+    # Create a new dictionary to store the counts of NaN values for each feature
+    nan_counts = {feature: 0 for feature in features_list}
+    # Iterate over the data dictionary
+    for key in data_dict:
+        for feature in features_list:
+            if data_dict[key][feature] == 'NaN':
+                nan_counts[feature] += 1
     # Calculate the percentage of NaN values for each feature
-    nan_counts = data_frame.isnull().sum() / data_frame.shape[0] * 100
+    nan_counts = {feature: count / len(data_dict) * 100 for feature, count in nan_counts.items()}
 
     # Create a bar chart to visualize the results
-    nan_counts.plot(kind='bar', color='blue')
+    plt.bar(nan_counts.keys(), nan_counts.values())
 
     # Add labels and title
     plt.xlabel('Features')
     plt.ylabel('Percentage of NaN values')
     plt.title('Percentage of NaN values by feature')
+    
+    #Rotate the x labels
+    plt.xticks(rotation=90)
 
     # Display the chart
     plt.show()

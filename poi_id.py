@@ -21,7 +21,7 @@ from tester import test_classifier
 
 ### We will use every single numeric feature available
 features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees'] # You will need to use more features
-
+features_list2 = ['salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees'] # You will need to use more features
 ### Load the dictionary containing the dataset
 #with open("final_project_dataset.pkl", "rb") as data_file:
 
@@ -31,88 +31,42 @@ features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_pay
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
 data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
 
-print("Looking at the dataframe")
-print(data_frame.head())
+# Iterate over the dictionary and replace 'NaN' strings with np.nan
+#for key in data_dict:
+#    for feature in features_list:
+#        if data_dict[key][feature] == 'NaN':
+#            data_dict[key][feature] = np.nan
 
-print("Do Nan strings exist in this data set?")
-print(data_frame.isin(['NaN']).any(axis=1))
-
-print("Replacing NaN Strings with nan values")
-data_frame.replace("NaN", np.nan, inplace=True)
-
-print("Printing if it has null values")
-print(data_frame.isnull())
-print("Printing how many null values")
-print(data_frame.isnull().sum())
-
-print("Printing the data frame's header")
-print(data_frame.head())
-
-
-
-feature_nulls_analyze(data_frame)
+feature_nulls_analyze(data_dict, features_list)
 #Select only the features in features_list
-selected_features = data_frame.loc[:, features_list]
 
-print("Looking at the dataframe")
-print(selected_features.head())
-print(selected_features['salary'].dtype)
-
-#Now we need to convert everything to a float but the poi column
-# Store column names in a list
-cols = selected_features.columns.tolist()
-# Remove 'poi' column from the list
-cols.remove('poi')
-# Convert the data type of all columns in the list to float
-selected_features[cols] = selected_features[cols].astype(float)
-
-# Add the 'poi' column back to the DataFrame
-selected_features = selected_features.assign(poi=data_frame['poi'])
-
-print(selected_features.head())
-
-print("Looking at the data frame again")
 print('Replacing NAN with mean values')
 #Additional functionality was added to the outlier_cleaner.py
 #This function replaces NAN values with the column mean
-selected_features = replace_nan_with_mean(selected_features)
+selected_features = replace_nan_with_mean(data_dict, features_list2)
 
 ### Describe the data to check that everything is going okay
 print("Check the data frame yet again")
-print(selected_features.head())
+print(dict(list(data_dict.items())[:5]))
 
 ### Task 2: Remove outliers
 ### This outlierCleaner() function has been rewritten
 #Run outlier cleaner
 print("Cleaning Outliers has been cancelled")
-#cleaned_data = outlierCleaner(selected_features)
-cleaned_data = selected_features
-
-print(cleaned_data.head())
 
 ### Task 3: Create new feature(s)
 
-#Force bonus and salary to be numeric
-cleaned_data['bonus'] = pd.to_numeric(cleaned_data['bonus'], errors='coerce')
-cleaned_data['salary'] = pd.to_numeric(cleaned_data['salary'], errors='coerce')
+for key in data_dict:
+    data_dict[key]['bonus_to_salary'] = (data_dict[key]['bonus'] / (data_dict[key]['salary'] + 0.01))
 
-### Create new feature: bonus_to_salary ratio. Added a small value to the denominator to avoid dividing by zero.c
-cleaned_data['bonus_to_salary'] = ((cleaned_data['bonus']) / (cleaned_data['salary'] + 0.01))
-
-### Verify that the new feature was added correctly
+# Verify that the new feature was added correctly
 print("Verifying that bonus_to_salary was added correctly")
-print(cleaned_data.describe().loc[:,['bonus_to_salary']])
+for key in data_dict:
+    print(data_dict[key]['bonus_to_salary'])
 
-print("Showing the location of the new feature")
-###Check to make sure that the dataframe still looks healthy
-print(cleaned_data.describe())
-
-features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary']
-### Only use the columns in features_list
-cleaned_data = cleaned_data.filter(items=features_list)
 
 ### Store to my_dataset for easy export below.
-my_dataset = cleaned_data
+my_dataset = data_dict
 
 print("Printing cleaned data")
 print(my_dataset)
@@ -136,13 +90,6 @@ print(my_dataset)
 # Add the 'poi' column back to the scaled dataset
 #scaled_dataset.insert(0, 'poi', poi)
 #print(scaled_dataset['poi'].value_counts()) # check poi after
-
-
-
-
-data_dict = my_dataset.to_dict(orient='index')
-
-my_dataset = data_dict
 
 
 ### FEATURE TESTING
@@ -212,34 +159,14 @@ features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
     
 
-### For some reason, the labels have to be converted to a categorical variable
-### (We were getting an error otherwise)
-from sklearn.preprocessing import LabelEncoder
-#le = LabelEncoder()
-#labels_train = le.fit_transform(labels_train)
-#labels_test = le.fit_transform(labels_test)
-
-###Now we are going to do feature scaling
-#from sklearn.preprocessing import StandardScaler
-
-#scaler = StandardScaler()
-
-# Fit the scaler to the training data
-#scaler.fit(features_train)
-
-# Transform the training and test data using the fitted scaler
-#features_train_scaled = scaler.transform(features_train)
-#features_test_scaled = scaler.transform(features_test)
-
 ### Import the RandomForestClassifier from sklearn.ensemble
+###Import the pipeline and scaler as well
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 ### We are going to be using a grid search method in order to determine
 ### the best parameters for the RandomForest classifier.
-# Create the pipeline
-
 
 ### Import GridSearchCV
 from sklearn.model_selection import GridSearchCV
