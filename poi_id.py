@@ -34,7 +34,7 @@ data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
 print("Looking at the dataframe")
 print(data_frame.head())
 
-print("Nan strings")
+print("Do Nan strings exist in this data set?")
 print(data_frame.isin(['NaN']).any(axis=1))
 
 print("Replacing NaN Strings with nan values")
@@ -43,9 +43,10 @@ data_frame.replace("NaN", np.nan, inplace=True)
 print("Printing if it has null values")
 print(data_frame.isnull())
 print("Printing how many null values")
-print(data_frame.isnull().count())
+print(data_frame.isnull().sum())
 
-
+print("Printing the data frame's header")
+print(data_frame.head())
 
 
 
@@ -70,12 +71,14 @@ selected_features = selected_features.assign(poi=data_frame['poi'])
 
 print(selected_features.head())
 
+print("Looking at the data frame again")
 print('Replacing NAN with mean values')
 #Additional functionality was added to the outlier_cleaner.py
 #This function replaces NAN values with the column mean
 selected_features = replace_nan_with_mean(selected_features)
 
 ### Describe the data to check that everything is going okay
+print("Check the data frame yet again")
 print(selected_features.head())
 
 ### Task 2: Remove outliers
@@ -97,6 +100,7 @@ cleaned_data['salary'] = pd.to_numeric(cleaned_data['salary'], errors='coerce')
 cleaned_data['bonus_to_salary'] = ((cleaned_data['bonus']) / (cleaned_data['salary'] + 0.01))
 
 ### Verify that the new feature was added correctly
+print("Verifying that bonus_to_salary was added correctly")
 print(cleaned_data.describe().loc[:,['bonus_to_salary']])
 
 print("Showing the location of the new feature")
@@ -113,40 +117,33 @@ my_dataset = cleaned_data
 print("Printing cleaned data")
 print(my_dataset)
 
-print("Scaling data")
+#print("Scaling data")
 
-from sklearn.preprocessing import MinMaxScaler
-
-
-
+#from sklearn.preprocessing import MinMaxScaler
 # Create a copy of the original dataset
-scaled_dataset = my_dataset.copy()
+#scaled_dataset = my_dataset.copy()
 
-print(my_dataset['poi'].value_counts()) # check poi before
+#print(my_dataset['poi'].value_counts()) # check poi before
 
 #Remove the poi column
-poi = scaled_dataset.pop('poi')
+#poi = scaled_dataset.pop('poi')
 
 #Scale the rest of the data
-scaler = MinMaxScaler()
-scaled_features = scaler.fit_transform(scaled_dataset)
-scaled_dataset = pd.DataFrame(scaled_features, columns=scaled_dataset.columns)
+#scaler = MinMaxScaler()
+#scaled_features = scaler.fit_transform(scaled_dataset)
+#scaled_dataset = pd.DataFrame(scaled_features, columns=scaled_dataset.columns)
 
 # Add the 'poi' column back to the scaled dataset
-scaled_dataset.insert(0, 'poi', poi)
-print(scaled_dataset['poi'].value_counts()) # check poi after
-scaled_features = scaler.fit_transform(scaled_dataset)
+#scaled_dataset.insert(0, 'poi', poi)
+#print(scaled_dataset['poi'].value_counts()) # check poi after
 
 
 
 
-data_dict = scaled_dataset.to_dict(orient='index')
+data_dict = my_dataset.to_dict(orient='index')
 
 my_dataset = data_dict
 
-print("Printing dictionary keys to compare to features_list")
-print(my_dataset.keys())
-print(features_list)
 
 ### FEATURE TESTING
 ### In this code, we are going to test all of the features, including the new
@@ -183,9 +180,7 @@ features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_pay
 
 
 
-### Extract features and labels from dataset for local testing
-data = featureFormat(my_dataset, features_list, sort_keys = True)
-labels, features = targetFeatureSplit(data)
+
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
@@ -210,6 +205,9 @@ labels, features = targetFeatureSplit(data)
 
 features_list = ['poi', 'restricted_stock', 'to_messages', 'total_payments', 'bonus', 'from_poi_to_this_person', 'shared_receipt_with_poi','director_fees', 'loan_advances']
 
+### Extract features and labels from dataset for local testing
+data = featureFormat(my_dataset, features_list, sort_keys = True)
+labels, features = targetFeatureSplit(data)
 
 ### Here we are splitting the data into testing and training segments
 from sklearn.model_selection import train_test_split
@@ -238,29 +236,38 @@ labels_test = le.fit_transform(labels_test)
 
 ### Import the RandomForestClassifier from sklearn.ensemble
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 ### We are going to be using a grid search method in order to determine
 ### the best parameters for the RandomForest classifier.
+# Create the pipeline
+
 
 ### Import GridSearchCV
 from sklearn.model_selection import GridSearchCV
 
 ### Define the parameter grid for the grid search
 param_grid = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [None, 5, 10, 20],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4]
+    'classifier__n_estimators': [50, 100, 200],
+    'classifier__max_depth': [None, 5, 10, 20],
+    'classifier__min_samples_split': [2, 5, 10],
+    'classifier__min_samples_leaf': [1, 2, 4]
 }
 
-### Create a random forest classifier object
-clf = RandomForestClassifier(random_state=42)
+#Create the pipeline
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('classifier', RandomForestClassifier())
+])
+
+
 
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
+grid_search = GridSearchCV(pipe, param_grid, cv=5, scoring='f1')
 
 ### Fit the grid search object to the data
-grid_search.fit(features_train_scaled, labels_train)
+grid_search.fit(features_train, labels_train)
 
 print("RandomForest:")
 
@@ -269,13 +276,16 @@ print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
     
 ### Create a RandomForestClassifier object using the best parameters
-clf = RandomForestClassifier(n_estimators=50, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42)
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('classifier', RandomForestClassifier(n_estimators=50, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42))
+])
 
-### Fit the classifier to the data
-clf.fit(features_train_scaled, labels_train)
+# Fit the pipeline to the training data
+pipe.fit(features_train, labels_train)
 
 ### Run a prediction test
-pred = clf.predict(features_test_scaled)
+pred = pipe.predict(features_test)
 
 ### Import the required functions from sklearn.metrics
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -316,7 +326,7 @@ grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
 print("Fit the grid search")
 ### Fit the grid search object to the data
-grid_search.fit(features_train_scaled, labels_train)
+grid_search.fit(features_train, labels_train)
 
 print("SVC:")
 
@@ -329,10 +339,10 @@ print("Best Score: ", grid_search.best_score_)
 clf = SVC(kernel='rbf', C=100)
 
 ### Fit the classifier to the training data
-clf.fit(features_train_scaled, labels_train)
+clf.fit(features_train, labels_train)
 
 ### Run a prediction test
-pred = clf.predict(features_test_scaled)
+pred = clf.predict(features_test)
 
 
 ### Compute accuracy
@@ -367,7 +377,7 @@ param_grid = {'n_estimators':[50, 100, 200],
 grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
 
 ### Fit the GridSearchCV object to the data
-grid_search.fit(features_train_scaled, labels_train)
+grid_search.fit(features_train, labels_train)
 
 print("AdaBoost:")
 
@@ -376,7 +386,7 @@ print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
 
 ### Make predictions using the best estimator
-pred = grid_search.best_estimator_.predict(features_test_scaled)
+pred = grid_search.best_estimator_.predict(features_test)
 
 ### Print the accuracy, precision, recall, and f1-score
 print("Accuracy: ", accuracy_score(labels_test, pred))
