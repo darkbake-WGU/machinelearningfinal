@@ -71,31 +71,6 @@ my_dataset = data_dict
 print("Printing cleaned data")
 print(my_dataset)
 
-#print("Scaling data")
-
-#from sklearn.preprocessing import MinMaxScaler
-# Create a copy of the original dataset
-#scaled_dataset = my_dataset.copy()
-
-#print(my_dataset['poi'].value_counts()) # check poi before
-
-#Remove the poi column
-#poi = scaled_dataset.pop('poi')
-
-#Scale the rest of the data
-#scaler = MinMaxScaler()
-#scaled_features = scaler.fit_transform(scaled_dataset)
-#scaled_dataset = pd.DataFrame(scaled_features, columns=scaled_dataset.columns)
-
-# Add the 'poi' column back to the scaled dataset
-#scaled_dataset.insert(0, 'poi', poi)
-#print(scaled_dataset['poi'].value_counts()) # check poi after
-
-
-### FEATURE TESTING
-### In this code, we are going to test all of the features, including the new
-### one using SelectKBest.
-
 
 ### Import necessary files
 from sklearn.feature_selection import SelectKBest, f_classif
@@ -120,9 +95,6 @@ features_scores = dict(zip(features_list[1:], scores))
 print("Feature Importance Scores:")
 for feature, score in features_scores.items():
     print("{}: {}".format(feature, score))
-
-
-
 
 
 ### Task 4: Try a varity of classifiers
