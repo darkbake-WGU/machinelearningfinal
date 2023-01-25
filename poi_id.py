@@ -253,7 +253,7 @@ pipe = Pipeline([
     ('encoder', LabelEncoder()),
     ('scaler', StandardScaler()),
     ('classifier', RandomForestClassifier())
-], memory=None)
+])
 
 
 
