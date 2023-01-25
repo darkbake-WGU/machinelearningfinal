@@ -268,17 +268,9 @@ print("RandomForest:")
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
     
-### Create a RandomForestClassifier object using the best parameters
-pipe = Pipeline([
-    ('scaler', StandardScaler()),
-    ('classifier', RandomForestClassifier(n_estimators=50, max_depth=None, min_samples_leaf=1, min_samples_split=2,random_state=42))
-])
-
-# Fit the pipeline to the training data
-pipe.fit(features_train, labels_train)
-
-### Run a prediction test
-pred = pipe.predict(features_test)
+best_estimator = grid_search.best_estimator_
+best_estimator.fit(features_train, labels_train)
+pred = best_estimator.predict(features_test)
 
 ### Import the required functions from sklearn.metrics
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -305,17 +297,21 @@ print("F1-score: ", f1)
 from sklearn.svm import SVC
 
 # Define the parameter grid for the SVC
-param_grid = {'C': [0.1, 1, 10, 100],
-              'kernel': ['linear', 'rbf']}
+param_grid = {'classifier__C': [0.1, 1, 10, 100],
+              'classifier__kernel': ['linear', 'rbf']}
 
 #
 print("Create classifier")
-### Create a SVC classifier object
-clf = SVC()
+#Create the pipeline
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('classifier', SVC())
+])
+
 
 print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
+grid_search = GridSearchCV(pipe, param_grid, cv=5, scoring='f1')
 
 print("Fit the grid search")
 ### Fit the grid search object to the data
@@ -328,14 +324,9 @@ print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
 #
 
-### Create a SVM classifier object using the best parameters found
-clf = SVC(kernel='rbf', C=100)
-
-### Fit the classifier to the training data
-clf.fit(features_train, labels_train)
-
-### Run a prediction test
-pred = clf.predict(features_test)
+best_estimator = grid_search.best_estimator_
+best_estimator.fit(features_train, labels_train)
+pred = best_estimator.predict(features_test)
 
 
 ### Compute accuracy
@@ -359,17 +350,22 @@ print("F1-score: ", f1)
 ### Import the necessary files
 from sklearn.ensemble import AdaBoostClassifier
 
-### Create an AdaBoostClassifier object
-clf = AdaBoostClassifier(random_state=42)
+#Create the pipeline
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('classifier', AdaBoostClassifier())
+])
 
 ### Define the parameter grid for the AdaBoostClassifier
-param_grid = {'n_estimators':[50, 100, 200],
-              'learning_rate':[0.1, 0.5, 1.0]}
+param_grid = {'classifier__n_estimators':[50, 100, 200],
+              'classifier__learning_rate':[0.1, 0.5, 1.0]}
 
-### Create a GridSearchCV object
-grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='f1')
+print("Create grid search")
+### Create a grid search object using the classifier and parameter grid
+grid_search = GridSearchCV(pipe, param_grid, cv=5, scoring='f1')
 
-### Fit the GridSearchCV object to the data
+print("Fit the grid search")
+### Fit the grid search object to the data
 grid_search.fit(features_train, labels_train)
 
 print("AdaBoost:")
@@ -379,7 +375,9 @@ print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
 
 ### Make predictions using the best estimator
-pred = grid_search.best_estimator_.predict(features_test)
+best_estimator = grid_search.best_estimator_
+best_estimator.fit(features_train, labels_train)
+pred = best_estimator.predict(features_test)
 
 ### Print the accuracy, precision, recall, and f1-score
 print("Accuracy: ", accuracy_score(labels_test, pred))
@@ -389,9 +387,12 @@ print("F1-score: ", f1_score(labels_test, pred))
 
 ### It looks like we have a winner! We will use the RandomForest classifier
 ### Write the classifier here with its optimal parameters:
-clf = AdaBoostClassifier(learning_rate=.5, n_estimators=50)
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('classifier', AdaBoostClassifier(learning_rate=.5,n_estimators=50))
+])
 
-test_classifier(clf, my_dataset, features_list)
+test_classifier(best_estimator, my_dataset, features_list)
 
 
 
@@ -421,4 +422,4 @@ test_classifier(clf, my_dataset, features_list)
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
 
-dump_classifier_and_data(clf, my_dataset, features_list)
+dump_classifier_and_data(pipe, my_dataset, features_list)
