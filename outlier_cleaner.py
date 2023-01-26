@@ -70,3 +70,9 @@ def feature_nulls_analyze(data_dict, features_list):
 
     # Display the chart
     plt.show()
+    
+def count_nan_entries(data_dict):
+    nan_count = {}
+    for key, value in data_dict.items():
+        nan_count[key] = sum(map(lambda x: x=='NaN', value.values()))
+    return nan_count
