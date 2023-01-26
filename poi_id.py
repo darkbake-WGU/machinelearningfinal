@@ -29,7 +29,7 @@ features_list2 = ['salary', 'to_messages', 'deferral_payments', 'total_payments'
 ### in the outlierCleaner() function that I rewrote.
     
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
-data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
+#data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
 
 # Iterate over the dictionary and replace 'NaN' strings with np.nan
 #for key in data_dict:
@@ -43,7 +43,7 @@ feature_nulls_analyze(data_dict, features_list)
 print('Replacing NAN with mean values')
 #Additional functionality was added to the outlier_cleaner.py
 #This function replaces NAN values with the column mean
-selected_features = replace_nan_with_mean(data_dict, features_list2)
+data_dict = replace_nan_with_mean(data_dict, features_list2)
 
 ### Describe the data to check that everything is going okay
 print("Check the data frame yet again")
@@ -69,7 +69,7 @@ for key in data_dict:
 my_dataset = data_dict
 
 print("Printing cleaned data")
-print(my_dataset)
+print(my_dataset.keys())
 
 
 ### Import necessary files
@@ -147,6 +147,13 @@ from sklearn.model_selection import GridSearchCV
 param_grid = {'classifier__n_estimators': [10, 50, 100],
               'classifier__max_depth': [None, 5, 10]}
 
+
+param_grid2 = {'n_estimators': [10, 50, 100, 200],
+              'max_depth': [None, 5, 10, 20],
+              'min_samples_split': [2, 5, 10],
+              'min_samples_leaf': [1, 2, 4],
+              'criterion': ['gini', 'entropy']}
+
 #Create the pipeline
 pipe = Pipeline([
     ('scaler', StandardScaler()),
@@ -154,9 +161,10 @@ pipe = Pipeline([
 ])
 
 
+clf = RandomForestClassifier()
 
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(pipe, param_grid, cv=5, scoring='f1')
+grid_search = GridSearchCV(clf, param_grid2, scoring='f1')
 
 ### Fit the grid search object to the data
 grid_search.fit(features_train, labels_train)
@@ -167,9 +175,8 @@ print("RandomForest:")
 print("Best Parameters: ", grid_search.best_params_)
 print("Best Score: ", grid_search.best_score_)
 
-#Make the prediction
+###Make the prediction
 best_estimator = grid_search.best_estimator_
-best_estimator.fit(features_train, labels_train)
 pred = best_estimator.predict(features_test)
 
 ### Import the required functions from sklearn.metrics
@@ -226,7 +233,6 @@ print("Best Score: ", grid_search.best_score_)
 
 #Make the prediction using the parameters found by the grid search
 best_estimator = grid_search.best_estimator_
-best_estimator.fit(features_train, labels_train)
 pred = best_estimator.predict(features_test)
 
 
@@ -277,7 +283,6 @@ print("Best Score: ", grid_search.best_score_)
 
 ### Make predictions using the best estimator
 best_estimator = grid_search.best_estimator_
-best_estimator.fit(features_train, labels_train)
 pred = best_estimator.predict(features_test)
 
 ### Print the accuracy, precision, recall, and f1-score
@@ -285,6 +290,43 @@ print("Accuracy: ", accuracy_score(labels_test, pred))
 print("Precision: ", precision_score(labels_test, pred))
 print("Recall: ", recall_score(labels_test, pred))
 print("F1-score: ", f1_score(labels_test, pred))
+
+print("Naive Bayes")
+
+### Import the necessary files
+from sklearn.naive_bayes import GaussianNB
+
+###Set the classifier
+clf = GaussianNB()
+
+###Fit the classifier
+clf.fit(features_train, labels_train)
+
+###Make the prediction
+pred = clf.predict(features_test)
+
+### Print the accuracy, precision, recall, and f1-score
+print("Accuracy: ", accuracy_score(labels_test, pred))
+print("Precision: ", precision_score(labels_test, pred))
+print("Recall: ", recall_score(labels_test, pred))
+print("F1-score: ", f1_score(labels_test, pred))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### It looks like we have a winner! We will use the RandomForest classifier
 ### Write the classifier here with its optimal parameters:
