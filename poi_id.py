@@ -36,10 +36,15 @@ feature_nulls_analyze(data_dict, features_list)
 
 ###We are going to get an idea of how nany nulls exist per person
 nan_counts = count_nan_entries(data_dict)
+print("Printing nan counts")
 print(nan_counts)
 
+print("Removing outliers")
 ###Removing an entry with an entirely empty data set
 data_dict.pop("LOCKHART EUGENE E")
+
+#Removing the TOTAL person as it is not a person at all
+data_dict.pop("TOTAL")
 
 
 
@@ -48,14 +53,10 @@ print('Replacing NAN with mean values')
 #This function replaces NAN values with the column mean
 data_dict = replace_nan_with_mean(data_dict, features_list2)
 
-### Describe the data to check that everything is going okay
-print("Check the data frame yet again")
-print(dict(list(data_dict.items())[:5]))
-
 ### Task 2: Remove outliers
 ### This outlierCleaner() function has been rewritten
 #Run outlier cleaner
-print("Cleaning Outliers has been cancelled")
+print("Automatic outlier cleaner has been cancelled")
 
 ### Task 3: Create new feature(s)
 
@@ -72,7 +73,11 @@ for key in data_dict:
 my_dataset = data_dict
 
 print("Printing cleaned data keys")
-print(my_dataset.keys())
+keys = list(my_dataset["SHARP VICTORIA T"].keys())
+print(keys)
+
+#Adding in bonus_to_salary
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary'] # You will need to use more features
 
 
 ### Import necessary files
@@ -122,7 +127,7 @@ for feature, score in features_scores.items():
 # Example starting point. Try investigating other evaluation techniques!
 
 ### We are going to keep the features with scores > .5
-features_list = ['poi', 'loan_advances', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'from_this_person_to_poi', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees'] # You will need to use more features
+features_list = ['poi', 'salary', 'total_payments', 'loan_advances', 'bonus', 'deferred_income', 'total_stock_value', 'exercised_stock_options', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock'] # You will need to use more features
 
 
 ### Extract features and labels from dataset for local testing
@@ -326,7 +331,7 @@ print("F1-score: ", f1_score(labels_test, pred))
 ### Write the classifier here with its optimal parameters:
 pipe = Pipeline([
     ('scaler', StandardScaler()),
-    ('classifier', AdaBoostClassifier(algorithm='SAMME.R', learning_rate=1.0, n_estimators=50))
+    ('classifier', GaussianNB())
     #('classifier', SVC(C=10, degree=2, gamma='scale',kernel='linear'))
 ])
 
