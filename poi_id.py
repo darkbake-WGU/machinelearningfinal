@@ -15,6 +15,7 @@ import numpy as np
 import numbers
 from tester import test_classifier
 from outlier_cleaner import count_nan_entries
+from sklearn.model_selection import StratifiedShuffleSplit
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -127,7 +128,7 @@ for feature, score in features_scores.items():
 # Example starting point. Try investigating other evaluation techniques!
 
 ### We are going to keep the features with scores > .5
-features_list = ['poi', 'salary', 'total_payments', 'loan_advances', 'bonus', 'deferred_income', 'total_stock_value', 'exercised_stock_options', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock'] # You will need to use more features
+#features_list = ['poi', 'salary', 'total_payments', 'loan_advances', 'bonus', 'deferred_income', 'total_stock_value', 'exercised_stock_options', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock'] # You will need to use more features
 
 
 ### Extract features and labels from dataset for local testing
@@ -149,37 +150,40 @@ from sklearn.preprocessing import StandardScaler
 ### We are going to be using a grid search method in order to determine
 ### the best parameters for the RandomForest classifier.
 
+#Remove feature 4 from the data set, as it is constant
+
+features = np.delete(features, 4, axis=1)
+features_test = np.delete(features_test, 4, axis=1)
+
 ### Import GridSearchCV
 from sklearn.model_selection import GridSearchCV
 
+###Modified the code to take into account the same test as tester.py
+cv = StratifiedShuffleSplit(n_splits=100, random_state = 42)
+
 ### Define the parameter grid for the grid search
-param_grid = {'classifier__n_estimators': [10, 50, 100, 200],
-              'classifier__max_depth': [None, 5, 10, 20],
+
+param_grid = {'classifier__n_estimators': [2, 5, 10, 50, 100],
+              'classifier__max_depth': [None, 5, 10, 20, 30, 40, 50],
               'classifier__min_samples_split': [2, 5, 10],
               'classifier__min_samples_leaf': [1, 2, 4],
-              'classifier__criterion': ['gini', 'entropy']}
+              'classifier__criterion': ['gini', 'entropy'],
+              'classifier__max_features': ['auto', 'sqrt']}
+              #selector__k': [2,4,6,8,10]}
 
-###This was used during debugging when we removed the pipeline
-param_grid2 = {'n_estimators': [10, 50, 100, 200],
-              'max_depth': [None, 5, 10, 20],
-              'min_samples_split': [2, 5, 10],
-              'min_samples_leaf': [1, 2, 4],
-              'criterion': ['gini', 'entropy']}
-
-###Create the pipeline
+###Create the pipeline - scaler not necessary for RandomForest
 pipe = Pipeline([
-    ('scaler', StandardScaler()),
+    #('scaler', StandardScaler()),
+    ('selector', SelectKBest(k=3)),
     ('classifier', RandomForestClassifier())
 ])
 
-###Used during debugging when we removed the pipeline
-clf = RandomForestClassifier()
 
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(pipe, param_grid, scoring='f1')
+grid_search = GridSearchCV(pipe, param_grid, cv=cv, scoring='recall')
 
 ### Fit the grid search object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features, labels)
 
 print("RandomForest:")
 
@@ -189,25 +193,25 @@ print("Best Score: ", grid_search.best_score_)
 
 ###Make the prediction
 best_estimator = grid_search.best_estimator_
-pred = best_estimator.predict(features_test)
+pred = best_estimator.predict(features)
 
 ### Import the required functions from sklearn.metrics
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 ### Compute accuracy
-accuracy = accuracy_score(labels_test, pred)
+accuracy = accuracy_score(labels, pred)
 print("Accuracy: ", accuracy)
 
 ### Compute precision
-precision = precision_score(labels_test, pred)
+precision = precision_score(labels, pred)
 print("Precision: ", precision)
 
 ### Compute recall
-recall = recall_score(labels_test, pred)
+recall = recall_score(labels, pred)
 print("Recall: ", recall)
 
 ### Compute F1-score
-f1 = f1_score(labels_test, pred)
+f1 = f1_score(labels, pred)
 print("F1-score: ", f1)
 
 ### Now we are trying SVC
@@ -219,24 +223,25 @@ from sklearn.svm import SVC
 param_grid = {'classifier__C': [0.1, 1, 10],
               'classifier__kernel': ['linear', 'rbf', 'poly'],
               'classifier__degree': [2,3,4],
-              'classifier__gamma': ['scale', 'auto']
-             }
+              'classifier__gamma': ['scale', 'auto']}
+              #'selector__k': [2,4,6,8,10]}
 
 print("Create classifier in a pipeline")
 #Create the pipeline
 pipe = Pipeline([
     ('scaler', StandardScaler()),
+    ('selector', SelectKBest(k=8)),
     ('classifier', SVC())
 ])
 
 
 print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(pipe, param_grid, cv=5, scoring='f1')
+grid_search = GridSearchCV(pipe, param_grid,cv=cv,scoring='f1')
 
 print("Fit the grid search")
 ### Fit the grid search object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features, labels)
 
 print("SVC:")
 
@@ -247,23 +252,23 @@ print("Best Score: ", grid_search.best_score_)
 
 #Make the prediction using the parameters found by the grid search
 best_estimator = grid_search.best_estimator_
-pred = best_estimator.predict(features_test)
+pred = best_estimator.predict(features)
 
 
 ### Compute accuracy
-accuracy = accuracy_score(labels_test, pred)
+accuracy = accuracy_score(labels, pred)
 print("Accuracy: ", accuracy)
 
 ### Compute precision
-precision = precision_score(labels_test, pred)
+precision = precision_score(labels, pred)
 print("Precision: ", precision)
 
 ### Compute recall
-recall = recall_score(labels_test, pred)
+recall = recall_score(labels, pred)
 print("Recall: ", recall)
 
 ### Compute F1-score
-f1 = f1_score(labels_test, pred)
+f1 = f1_score(labels, pred)
 print("F1-score: ", f1)
 
 ### Now we will try AdaBoost
@@ -273,22 +278,24 @@ from sklearn.ensemble import AdaBoostClassifier
 
 #Create the pipeline
 pipe = Pipeline([
-    ('scaler', StandardScaler()),
+    #('scaler', StandardScaler()),
+    ('selector', SelectKBest(k=10)),
     ('classifier', AdaBoostClassifier())
 ])
 
 ### Define the parameter grid for the AdaBoostClassifier
-param_grid = {'classifier__n_estimators': [50, 100, 200],
-              'classifier__learning_rate': [0.1, 0.5, 1.0],
+param_grid = {'classifier__n_estimators': [10, 50, 100, 200,500],
+              'classifier__learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.5, 1.0],
               'classifier__algorithm': ['SAMME', 'SAMME.R']}
+              #'selector__k': [2,4,6,8,10]}
 
 print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(pipe, param_grid, cv=5, scoring='f1')
+grid_search = GridSearchCV(pipe, param_grid, cv=cv, scoring='f1')
 
 print("Fit the grid search")
 ### Fit the grid search object to the data
-grid_search.fit(features_train, labels_train)
+grid_search.fit(features, labels)
 
 print("AdaBoost:")
 
@@ -298,13 +305,13 @@ print("Best Score: ", grid_search.best_score_)
 
 ### Make predictions using the best estimator
 best_estimator = grid_search.best_estimator_
-pred = best_estimator.predict(features_test)
+pred = best_estimator.predict(features)
 
 ### Print the accuracy, precision, recall, and f1-score
-print("Accuracy: ", accuracy_score(labels_test, pred))
-print("Precision: ", precision_score(labels_test, pred))
-print("Recall: ", recall_score(labels_test, pred))
-print("F1-score: ", f1_score(labels_test, pred))
+print("Accuracy: ", accuracy_score(labels, pred))
+print("Precision: ", precision_score(labels, pred))
+print("Recall: ", recall_score(labels, pred))
+print("F1-score: ", f1_score(labels, pred))
 
 print("Naive Bayes")
 
@@ -331,11 +338,13 @@ print("F1-score: ", f1_score(labels_test, pred))
 ### Write the classifier here with its optimal parameters:
 pipe = Pipeline([
     ('scaler', StandardScaler()),
-    ('classifier', GaussianNB())
+    ('selector', SelectKBest(k=10)),
+    ('classifier', SVC(C=10,degree=2, gamma='scale', kernel='poly'))
     #('classifier', SVC(C=10, degree=2, gamma='scale',kernel='linear'))
 ])
 
 #clf = RandomForestClassifier(criterion='entropy', max_depth=5,min_samples_leaf=1,min_samples_split=2,n_estimators=10)
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary'] # You will need to use more features
 
 ###Here, we use the official test_classifier function to check our results.
 test_classifier(pipe, my_dataset, features_list)
