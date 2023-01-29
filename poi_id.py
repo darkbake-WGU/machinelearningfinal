@@ -16,6 +16,7 @@ import numbers
 from tester import test_classifier
 from outlier_cleaner import count_nan_entries
 from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.decomposition import PCA
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -28,6 +29,11 @@ features_list2 = ['salary', 'to_messages', 'deferral_payments', 'total_payments'
 ### Load the dictionary containing the dataset
 #with open("final_project_dataset.pkl", "rb") as data_file:
     
+#Separating financial from behavioral features
+financial_features = ['salary', 'bonus', 'exercised_stock_options', 'restricted_stock', 'total_payments', 'expenses','total_stock_value', 'deferred_income', 'long_term_incentive']
+behavioral_features = ['poi','to_messages','from_messages','from_poi_to_this_person','from_this_person_to_poi','other']
+
+
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
 
 
@@ -68,6 +74,35 @@ for key in data_dict:
 print("Verifying that bonus_to_salary was added correctly")
 for key in data_dict:
     print(data_dict[key]['bonus_to_salary'])
+    
+#Convert to data frame 
+## Exploring the dataset through pandas.Dataframe
+data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
+data_frame.head()
+
+#Doing PCA analysis on financial features and converting them to one feature
+pca = PCA(n_components=1)
+pca.fit(data_frame[financial_features])
+pcaComponents = pca.fit_transform(data_frame[financial_features])
+data_frame['financial'] = pcaComponents
+
+#Setting up the strategic features, which use behavioral and the one financial feature
+strategic_features = behavioral_features + ['financial']
+
+print(data_frame['financial'])
+## Converting back the pandas Dataframe to the dictionary structure
+my_dataset = data_frame.to_dict(orient='index')
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### Store to my_dataset for easy export below.
@@ -77,8 +112,8 @@ print("Printing cleaned data keys")
 keys = list(my_dataset["SHARP VICTORIA T"].keys())
 print(keys)
 
-#Adding in bonus_to_salary
-features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary'] # You will need to use more features
+#Adding in bonus_to_salary and financial
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary', 'financial'] # You will need to use more features
 
 
 ### Import necessary files
@@ -130,6 +165,8 @@ for feature, score in features_scores.items():
 ### We are going to keep the features with scores > .5
 #features_list = ['poi', 'salary', 'total_payments', 'loan_advances', 'bonus', 'deferred_income', 'total_stock_value', 'exercised_stock_options', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock'] # You will need to use more features
 
+#Using strategic features
+features_list = strategic_features
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -152,8 +189,8 @@ from sklearn.preprocessing import StandardScaler
 
 #Remove feature 4 from the data set, as it is constant
 
-features = np.delete(features, 4, axis=1)
-features_test = np.delete(features_test, 4, axis=1)
+#features = np.delete(features, 4, axis=1)
+#features_test = np.delete(features_test, 4, axis=1)
 
 ### Import GridSearchCV
 from sklearn.model_selection import GridSearchCV
@@ -174,7 +211,7 @@ param_grid = {'classifier__n_estimators': [2, 5, 10, 50, 100],
 ###Create the pipeline - scaler not necessary for RandomForest
 pipe = Pipeline([
     #('scaler', StandardScaler()),
-    ('selector', SelectKBest(k=3)),
+    ('selector', SelectKBest(k=6)),
     ('classifier', RandomForestClassifier())
 ])
 
@@ -230,14 +267,14 @@ print("Create classifier in a pipeline")
 #Create the pipeline
 pipe = Pipeline([
     ('scaler', StandardScaler()),
-    ('selector', SelectKBest(k=8)),
+    ('selector', SelectKBest(k=6)),
     ('classifier', SVC())
 ])
 
 
 print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(pipe, param_grid,cv=cv,scoring='f1')
+grid_search = GridSearchCV(pipe, param_grid,cv=cv,scoring='recall')
 
 print("Fit the grid search")
 ### Fit the grid search object to the data
@@ -279,19 +316,19 @@ from sklearn.ensemble import AdaBoostClassifier
 #Create the pipeline
 pipe = Pipeline([
     #('scaler', StandardScaler()),
-    ('selector', SelectKBest(k=10)),
+    ('selector', SelectKBest(k=6)),
     ('classifier', AdaBoostClassifier())
 ])
 
 ### Define the parameter grid for the AdaBoostClassifier
-param_grid = {'classifier__n_estimators': [10, 50, 100, 200,500],
-              'classifier__learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.5, 1.0],
+param_grid = {'classifier__n_estimators': [10, 25, 50, 100, 200,500],
+              'classifier__learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.5, 1.0,2,5,10,100],
               'classifier__algorithm': ['SAMME', 'SAMME.R']}
               #'selector__k': [2,4,6,8,10]}
 
 print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(pipe, param_grid, cv=cv, scoring='f1')
+grid_search = GridSearchCV(pipe, param_grid, cv=cv, scoring='recall')
 
 print("Fit the grid search")
 ### Fit the grid search object to the data
