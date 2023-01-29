@@ -31,7 +31,7 @@ features_list2 = ['salary', 'to_messages', 'deferral_payments', 'total_payments'
     
 #Separating financial from behavioral features
 financial_features = ['salary', 'bonus', 'exercised_stock_options', 'restricted_stock', 'total_payments', 'expenses','total_stock_value', 'deferred_income', 'long_term_incentive']
-behavioral_features = ['poi','to_messages','from_messages','from_poi_to_this_person','from_this_person_to_poi','other']
+behavioral_features = ['to_messages','from_messages','from_poi_to_this_person','from_this_person_to_poi','other']
 
 
 data_dict = pickle.load(open("final_project_dataset.pkl", "rb") ) 
@@ -75,20 +75,6 @@ print("Verifying that bonus_to_salary was added correctly")
 for key in data_dict:
     print(data_dict[key]['bonus_to_salary'])
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 
@@ -96,8 +82,8 @@ print("Printing cleaned data keys")
 keys = list(my_dataset["SHARP VICTORIA T"].keys())
 print(keys)
 
-#Adding in bonus_to_salary and financial
-features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary', 'financial'] # You will need to use more features
+#Adding in bonus_to_salary
+features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary'] # You will need to use more features
 
 
 ### Import necessary files
@@ -168,7 +154,7 @@ print(data_frame['financial'])
 my_dataset = data_frame.to_dict(orient='index')
 
 #Using strategic features
-features_list = strategic_features
+features_list = ['poi'] + strategic_features + financial_features
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -213,45 +199,45 @@ param_grid = {'classifier__n_estimators': [2, 5, 10, 50, 100],
 ###Create the pipeline - scaler not necessary for RandomForest
 pipe = Pipeline([
     #('scaler', StandardScaler()),
-    ('selector', SelectKBest(k=6)),
+    ('selector', SelectKBest(k=10)),
     ('classifier', RandomForestClassifier())
 ])
 
 
 ### Create a grid search object using the classifier and parameter grid
-grid_search = GridSearchCV(pipe, param_grid, cv=cv, scoring='recall')
+#grid_search = GridSearchCV(pipe, param_grid, cv=cv, scoring='recall')
 
 ### Fit the grid search object to the data
-grid_search.fit(features, labels)
+#grid_search.fit(features, labels)
 
 print("RandomForest:")
 
 ### Print the best parameters and best score
-print("Best Parameters: ", grid_search.best_params_)
-print("Best Score: ", grid_search.best_score_)
+#print("Best Parameters: ", grid_search.best_params_)
+#print("Best Score: ", grid_search.best_score_)
 
 ###Make the prediction
-best_estimator = grid_search.best_estimator_
-pred = best_estimator.predict(features)
+#best_estimator = grid_search.best_estimator_
+#pred = best_estimator.predict(features)
 
 ### Import the required functions from sklearn.metrics
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 ### Compute accuracy
-accuracy = accuracy_score(labels, pred)
-print("Accuracy: ", accuracy)
+#accuracy = accuracy_score(labels, pred)
+#print("Accuracy: ", accuracy)
 
 ### Compute precision
-precision = precision_score(labels, pred)
-print("Precision: ", precision)
+#precision = precision_score(labels, pred)
+#print("Precision: ", precision)
 
 ### Compute recall
-recall = recall_score(labels, pred)
-print("Recall: ", recall)
+#recall = recall_score(labels, pred)
+#print("Recall: ", recall)
 
 ### Compute F1-score
-f1 = f1_score(labels, pred)
-print("F1-score: ", f1)
+#f1 = f1_score(labels, pred)
+#print("F1-score: ", f1)
 
 ### Now we are trying SVC
 
@@ -269,7 +255,7 @@ print("Create classifier in a pipeline")
 #Create the pipeline
 pipe = Pipeline([
     ('scaler', StandardScaler()),
-    ('selector', SelectKBest(k=6)),
+    ('selector', SelectKBest(k=10)),
     ('classifier', SVC())
 ])
 
@@ -318,13 +304,13 @@ from sklearn.ensemble import AdaBoostClassifier
 #Create the pipeline
 pipe = Pipeline([
     #('scaler', StandardScaler()),
-    ('selector', SelectKBest(k=6)),
+    ('selector', SelectKBest(k=10)),
     ('classifier', AdaBoostClassifier())
 ])
 
 ### Define the parameter grid for the AdaBoostClassifier
 param_grid = {'classifier__n_estimators': [10, 25, 50, 100, 200,500],
-              'classifier__learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.5, 1.0,2,5,10,100],
+              'classifier__learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.5, 1.0],
               'classifier__algorithm': ['SAMME', 'SAMME.R']}
               #'selector__k': [2,4,6,8,10]}
 
@@ -378,12 +364,10 @@ print("F1-score: ", f1_score(labels_test, pred))
 pipe = Pipeline([
     ('scaler', StandardScaler()),
     ('selector', SelectKBest(k=10)),
-    ('classifier', SVC(C=10,degree=2, gamma='scale', kernel='poly'))
-    #('classifier', SVC(C=10, degree=2, gamma='scale',kernel='linear'))
+    ('classifier', AdaBoostClassifier(algorithm='SAMME.R', learning_rate=1, n_estimators=10))
 ])
 
 #clf = RandomForestClassifier(criterion='entropy', max_depth=5,min_samples_leaf=1,min_samples_split=2,n_estimators=10)
-features_list = ['poi', 'salary', 'to_messages', 'deferral_payments', 'total_payments', 'bonus', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses', 'from_poi_to_this_person', 'exercised_stock_options', 'from_messages', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock', 'director_fees', 'bonus_to_salary'] # You will need to use more features
 
 ###Here, we use the official test_classifier function to check our results.
 test_classifier(pipe, my_dataset, features_list)
