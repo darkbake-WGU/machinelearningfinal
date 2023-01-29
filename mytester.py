@@ -59,7 +59,7 @@ for person in data_dict:
 data_dict[key].pop('email_address')
 
 financial_features = ['salary', 'bonus', 'exercised_stock_options', 'restricted_stock', 'total_payments', 'expenses','total_stock_value', 'deferred_income', 'long_term_incentive']
-behavioral_features = ['poi','to_messages','from_messages','from_poi_to_this_person','from_this_person_to_poi','other']
+behavioral_features = ['to_messages','from_messages','from_poi_to_this_person','from_this_person_to_poi','other']
 
 #Convert to data frame 
 ## Exploring the dataset through pandas.Dataframe
@@ -110,20 +110,20 @@ from sklearn.model_selection import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
-cv = StratifiedShuffleSplit(n_splits=100, random_state = 42)
+cv = StratifiedShuffleSplit(n_splits=1000, random_state = 42)
 
 #Create the pipeline
 pipe = Pipeline([
     #('scaler', StandardScaler()),
-    ('selector', SelectKBest(k=10)),
+    ('selector', SelectKBest()),
     ('classifier', AdaBoostClassifier())
 ])
 
 ### Define the parameter grid for the AdaBoostClassifier
 param_grid = {'classifier__n_estimators': [10, 25, 50, 100],
               'classifier__learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.5, 1.0],
-              'classifier__algorithm': ['SAMME', 'SAMME.R']}
-              #'selector__k': [2,4,6,8,10]}
+              'classifier__algorithm': ['SAMME', 'SAMME.R'],
+              'selector__k': [2,4,6,8,10]}
 
 print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
