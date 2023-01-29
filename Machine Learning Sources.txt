@@ -1,3 +1,9 @@
 “I hereby confirm that this submission is my work. I have cited above the origins of any parts of the submission that were taken from Websites, books, forums, blog posts, github repositories, etc.”
 I used this source when trying to write the code for outlierCleaner():
 https://stackoverflow.com/questions/55471750/how-do-i-remove-outliers-using-multiple-columns-pandas
+
+I used this source to learn about PCA analysis in order to create an extra feature called 'financial' that was the other financial features combined.
+I also learned about separating behavioral and financial features:
+https://www.kaggle.com/code/tsilveira/machine-learning-tutorial-enron-e-mails
+
+
