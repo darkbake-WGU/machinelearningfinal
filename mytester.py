@@ -115,15 +115,15 @@ cv = StratifiedShuffleSplit(n_splits=1000, random_state = 42)
 #Create the pipeline
 pipe = Pipeline([
     #('scaler', StandardScaler()),
-    ('selector', SelectKBest()),
+    ('selector', SelectKBest(k=10)),
     ('classifier', AdaBoostClassifier())
 ])
 
 ### Define the parameter grid for the AdaBoostClassifier
 param_grid = {'classifier__n_estimators': [10, 25, 50, 100],
               'classifier__learning_rate': [0.0001, 0.001, 0.01, 0.1, 0.5, 1.0],
-              'classifier__algorithm': ['SAMME', 'SAMME.R'],
-              'selector__k': [2,4,6,8,10]}
+              'classifier__algorithm': ['SAMME', 'SAMME.R']}
+              #selector__k': [2,4,6,8,10]}
 
 print("Create grid search")
 ### Create a grid search object using the classifier and parameter grid
@@ -160,6 +160,6 @@ pipe = Pipeline([
 #clf = RandomForestClassifier(criterion='entropy', max_depth=5,min_samples_leaf=1,min_samples_split=2,n_estimators=10)
 
 ###Here, we use the official test_classifier function to check our results.
-test_classifier(pipe, my_dataset, features_list)
+test_classifier(best_estimator, my_dataset, features_list)
 
-dump_classifier_and_data(pipe, my_dataset, features_list)
+dump_classifier_and_data(best_estimator, my_dataset, features_list)
