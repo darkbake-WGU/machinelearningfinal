@@ -75,23 +75,7 @@ print("Verifying that bonus_to_salary was added correctly")
 for key in data_dict:
     print(data_dict[key]['bonus_to_salary'])
     
-#Convert to data frame 
-## Exploring the dataset through pandas.Dataframe
-data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
-data_frame.head()
 
-#Doing PCA analysis on financial features and converting them to one feature
-pca = PCA(n_components=1)
-pca.fit(data_frame[financial_features])
-pcaComponents = pca.fit_transform(data_frame[financial_features])
-data_frame['financial'] = pcaComponents
-
-#Setting up the strategic features, which use behavioral and the one financial feature
-strategic_features = behavioral_features + ['financial']
-
-print(data_frame['financial'])
-## Converting back the pandas Dataframe to the dictionary structure
-my_dataset = data_frame.to_dict(orient='index')
 
 
 
@@ -164,6 +148,24 @@ for feature, score in features_scores.items():
 
 ### We are going to keep the features with scores > .5
 #features_list = ['poi', 'salary', 'total_payments', 'loan_advances', 'bonus', 'deferred_income', 'total_stock_value', 'exercised_stock_options', 'other', 'from_this_person_to_poi', 'long_term_incentive', 'shared_receipt_with_poi', 'restricted_stock'] # You will need to use more features
+
+#Convert to data frame 
+## Exploring the dataset through pandas.Dataframe
+data_frame = pd.DataFrame.from_dict(data_dict, orient='index')
+data_frame.head()
+
+#Doing PCA analysis on financial features and converting them to one feature
+pca = PCA(n_components=1)
+pca.fit(data_frame[financial_features])
+pcaComponents = pca.fit_transform(data_frame[financial_features])
+data_frame['financial'] = pcaComponents
+
+#Setting up the strategic features, which use behavioral and the one financial feature
+strategic_features = behavioral_features + ['financial']
+
+print(data_frame['financial'])
+## Converting back the pandas Dataframe to the dictionary structure
+my_dataset = data_frame.to_dict(orient='index')
 
 #Using strategic features
 features_list = strategic_features
